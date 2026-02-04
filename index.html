@@ -19,48 +19,50 @@
             background-color: #f5f7fa;
             color: #333;
             line-height: 1.6;
+            width: 100%;
+            overflow-x: hidden;
         }
         
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+            width: 100%;
+            padding: 10px;
         }
         
         header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 25px;
+            margin-bottom: 15px;
+            padding: 15px;
             background: linear-gradient(135deg, #1e5799 0%, #207cca 100%);
             color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
         }
         
         .subtitle {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             opacity: 0.9;
         }
         
         .map-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 30px;
-            height: 700px;
+            gap: 15px;
+            margin-bottom: 15px;
+            height: 500px;
         }
         
         .map-wrapper {
             flex: 3;
-            min-width: 700px;
+            flex-basis: 70%;
+            min-width: 0;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             position: relative;
         }
@@ -68,31 +70,33 @@
         #map {
             height: 100%;
             width: 100%;
-            border-radius: 10px;
+            border-radius: 8px;
         }
         
         .info-panel {
             flex: 1;
-            min-width: 350px;
+            flex-basis: 30%;
+            min-width: 0;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
             display: flex;
             flex-direction: column;
         }
         
         .info-header {
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #eaeaea;
         }
         
         .info-content {
             flex: 1;
             overflow-y: auto;
-            max-height: 600px;
-            padding: 10px;
+            max-height: 420px;
+            padding: 8px;
+            font-size: 0.9rem;
         }
         
         .default-info {
@@ -109,25 +113,27 @@
         
         .camada-title {
             color: #1e5799;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
         }
         
         .camada-detalhes {
-            margin-bottom: 20px;
-            padding: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
             background: #f8f9fa;
-            border-radius: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
         }
         
         .detalhe-item {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
         }
         
         .detalhe-label {
             font-weight: 600;
-            min-width: 120px;
+            min-width: 80px;
+            font-size: 0.9rem;
         }
         
         .loading {
@@ -135,45 +141,26 @@
             justify-content: center;
             align-items: center;
             height: 100%;
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #6c757d;
         }
         
         footer {
             text-align: center;
-            margin-top: 30px;
-            padding: 20px;
+            margin-top: 15px;
+            padding: 10px;
             color: #6c757d;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
         
-        @media (max-width: 768px) {
-            .map-container {
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .map-wrapper, .info-panel {
-                min-width: 100%;
-            }
-            
-            #map {
-                height: 400px;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
-            }
-        }
-
         /* Botão de satélite no canto inferior direito */
         .satellite-toggle {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
+            bottom: 5px;
+            right: 5px;
             background: white;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             z-index: 1000;
@@ -196,7 +183,7 @@
         }
         
         .satellite-toggle i {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: #1e5799;
         }
         
@@ -210,9 +197,9 @@
             right: 0;
             background: #333;
             color: white;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             white-space: nowrap;
             margin-bottom: 5px;
             opacity: 0;
@@ -228,18 +215,18 @@
         /* Menu de camadas expansível */
         .layer-menu {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 5px;
+            left: 5px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             z-index: 1000;
-            min-width: 250px;
+            min-width: 200px;
             overflow: hidden;
         }
         
         .menu-header {
-            padding: 15px;
+            padding: 10px;
             background: #1e5799;
             color: white;
             cursor: pointer;
@@ -250,11 +237,12 @@
         
         .menu-title {
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
         }
         
         .menu-icon {
             transition: transform 0.3s ease;
+            font-size: 0.8rem;
         }
         
         .menu-content {
@@ -265,17 +253,17 @@
         }
         
         .menu-content.expanded {
-            max-height: 400px;
+            max-height: 350px;
             overflow-y: auto;
         }
         
         .layer-group {
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             border-top: 1px solid #eaeaea;
         }
         
         .group-header {
-            padding: 12px 15px;
+            padding: 10px 12px;
             background: #f8f9fa;
             font-weight: 600;
             color: #495057;
@@ -283,6 +271,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.9rem;
         }
         
         .group-header:hover {
@@ -290,7 +279,7 @@
         }
         
         .group-icon {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: transform 0.3s ease;
         }
         
@@ -301,12 +290,12 @@
         }
         
         .group-content.expanded {
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
         }
         
         .layer-item {
-            padding: 10px 15px 10px 25px;
+            padding: 8px 12px 8px 20px;
             border-bottom: 1px solid #f8f9fa;
             display: flex;
             justify-content: space-between;
@@ -318,41 +307,42 @@
         }
         
         .layer-name {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #495057;
         }
         
         .layer-checkbox {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
         
         .layer-legend {
-            margin-left: 25px;
-            padding: 5px 10px;
+            margin-left: 20px;
+            padding: 4px 8px;
             background: #f8f9fa;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #6c757d;
             display: flex;
             align-items: center;
+            margin-bottom: 5px;
         }
         
         .legend-color {
-            width: 15px;
-            height: 15px;
-            margin-right: 8px;
-            border-radius: 3px;
+            width: 12px;
+            height: 12px;
+            margin-right: 6px;
+            border-radius: 2px;
         }
         
         /* Botão de reset no canto superior direito */
         .reset-map-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 5px;
+            right: 5px;
             background: white;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             z-index: 1000;
@@ -360,11 +350,94 @@
             font-weight: 600;
             color: #1e5799;
             transition: all 0.3s ease;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .reset-map-btn:hover {
             background: #1e5799;
             color: white;
+        }
+        
+        @media (max-width: 992px) {
+            .map-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .map-wrapper, .info-panel {
+                flex-basis: 100%;
+                width: 100%;
+            }
+            
+            #map {
+                height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: auto;
+                gap: 10px;
+            }
+            
+            #map {
+                height: 350px;
+            }
+            
+            h1 {
+                font-size: 1.2rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .layer-menu {
+                min-width: 180px;
+            }
+            
+            .menu-title {
+                font-size: 0.9rem;
+            }
+            
+            .info-panel {
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .map-container {
+                height: auto;
+            }
+            
+            #map {
+                height: 300px;
+            }
+            
+            .container {
+                padding: 5px;
+            }
+            
+            header {
+                padding: 10px;
+            }
+            
+            .satellite-toggle {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .satellite-toggle i {
+                font-size: 1rem;
+            }
+            
+            .reset-map-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -464,7 +537,7 @@
                     <div class="default-info active" id="default-info">
                         <p>Selecione uma camada no menu à esquerda para visualizá-la no mapa.</p>
                         <p><strong>Instruções:</strong></p>
-                        <ul style="margin-top: 10px; padding-left: 20px;">
+                        <ul style="margin-top: 10px; padding-left: 18px; font-size: 0.85rem;">
                             <li>Use o menu de camadas para ativar/desativar camadas</li>
                             <li>Clique em uma feição no mapa para ver detalhes</li>
                             <li>Use o botão "Resetar Vista" para voltar à visão inicial</li>
@@ -478,7 +551,7 @@
                             <!-- Detalhes da camada serão preenchidos via JavaScript -->
                         </div>
                         
-                        <h4>Informações da Feição:</h4>
+                        <h4 style="margin: 10px 0 5px 0; font-size: 1rem;">Informações da Feição:</h4>
                         <div id="feature-info">
                             <!-- Informações da feição selecionada serão preenchidas via JavaScript -->
                         </div>
@@ -888,8 +961,8 @@
             `;
             
             // Preencher informações da feição
-            let featureHTML = '<div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">';
-            featureHTML += '<h4 style="margin-bottom: 10px;">Propriedades:</h4>';
+            let featureHTML = '<div style="margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 0.85rem;">';
+            featureHTML += '<h4 style="margin-bottom: 8px; font-size: 0.95rem;">Propriedades:</h4>';
             
             // Listar todas as propriedades
             for (const key in properties) {
@@ -909,7 +982,7 @@
             // Centralizar no elemento
             const bounds = layer.getBounds();
             map.fitBounds(bounds, { 
-                padding: [50, 50],
+                padding: [30, 30],
                 maxZoom: 10
             });
         }
