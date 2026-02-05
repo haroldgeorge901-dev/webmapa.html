@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Mantenha todo o CSS anterior igual */
         * {
             margin: 0;
             padding: 0;
@@ -427,8 +428,8 @@
                                     <input type="checkbox" class="layer-checkbox" id="layer-satelite">
                                 </div>
                                 <div class="layer-item">
-                                    <span class="layer-name">Meus Tiles Personalizados</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-meus-tiles">
+                                    <span class="layer-name">Meus Tiles Personalizados (0-17)</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-meus-tiles" checked>
                                 </div>
                                 <div class="layer-legend">
                                     <div class="legend-color" style="background: linear-gradient(to right, green, yellow, red);"></div>
@@ -464,7 +465,7 @@
                             <li>Clique em uma feição no mapa para ver detalhes</li>
                             <li>Use o botão "Resetar Vista" para voltar à visão inicial</li>
                             <li>Alternar para vista de satélite com o botão no canto inferior direito</li>
-                            <li><strong>Para ver seus tiles:</strong> marque "Meus Tiles Personalizados" e dê zoom até o nível 12</li>
+                            <li><strong>Seus tiles pessoais:</strong> Agora com múltiplos níveis de zoom (0-17)!</li>
                         </ul>
                     </div>
                     
@@ -494,13 +495,10 @@
         // URLs dos GeoJSONs
         const GEOJSON_BACIAS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
         
-        // URL dos seus tiles - OBSERVAÇÃO IMPORTANTE:
-        // Você mencionou que tem tiles na estrutura 12/1545/2279.png
-        // Isso significa que você só tem tiles para o zoom level 12
+        // URL dos seus tiles - AGORA COM MÚLTIPLOS NÍVEIS DE ZOOM (0-17)!
         const SEUS_TILES_URL = 'https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png';
 
-        // Inicialização do mapa - Vamos começar mais próximo do zoom 12
-        // Precisamos encontrar as coordenadas corretas para mostrar seus tiles
+        // Inicialização do mapa
         const map = L.map('map').setView([-18.5122, -44.5550], 7);
 
         // Camadas de mapa base
@@ -587,78 +585,46 @@
             }
         }
 
-        // Função para carregar seus tiles personalizados
+        // Função para carregar seus tiles personalizados - VERSÃO SIMPLIFICADA
         function carregarMeusTiles() {
-            console.log('Iniciando carregamento dos tiles...');
-            console.log('URL configurada:', SEUS_TILES_URL);
-            
-            // Primeiro, vamos testar se conseguimos acessar um tile específico
-            const testUrl = SEUS_TILES_URL.replace('{z}', '12').replace('{x}', '1545').replace('{y}', '2279');
-            console.log('Testando URL:', testUrl);
-            
-            fetch(testUrl)
-                .then(response => {
-                    if (response.ok) {
-                        console.log('✅ Tiles acessíveis! Criando camada...');
-                        criarCamadaTilesReal();
-                    } else {
-                        console.warn('❌ Não foi possível acessar os tiles via fetch, mas tentando criar camada de qualquer forma...');
-                        criarCamadaTilesReal();
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao testar tiles:', error);
-                    console.log('Tentando criar camada de qualquer forma...');
-                    criarCamadaTilesReal();
-                });
-        }
-        
-        function criarCamadaTilesReal() {
-            console.log('Criando camada de tiles com URL:', SEUS_TILES_URL);
+            console.log('🚀 Criando camada de tiles com múltiplos níveis de zoom (0-17)...');
             
             try {
-                // IMPORTANTE: Se você só tem tiles para zoom 12, precisamos configurar limites
+                // Criação SIMPLES da camada - agora com tiles para todos os níveis!
                 camadaMeusTiles = L.tileLayer(SEUS_TILES_URL, {
                     attribution: 'Tiles Pessoais',
-                    minZoom: 12,      // Só mostrar no zoom 12
-                    maxZoom: 12,      // Só mostrar no zoom 12
+                    minZoom: 0,      // Temos tiles a partir do zoom 0
+                    maxZoom: 17,     // Temos tiles até o zoom 17
                     tileSize: 256,
                     opacity: 0.9,
-                    // Se não encontrar tile, não mostrar nada
-                    errorTileUrl: '',
-                    // Desativar detecção de erro para evitar logs desnecessários
+                    // Tile vazio transparente para quando não encontrar (caso dê zoom 18+)
+                    errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
                     detectRetina: false
+                    // NÃO precisamos mais do getTileUrl personalizado!
+                    // O Leaflet vai automaticamente buscar os tiles no zoom correto
                 });
                 
                 console.log('✅ Camada de tiles criada com sucesso!');
                 console.log('Configurações:', {
                     minZoom: camadaMeusTiles.options.minZoom,
                     maxZoom: camadaMeusTiles.options.maxZoom,
-                    url: camadaMeusTiles._url
+                    url: SEUS_TILES_URL
                 });
+                console.log('📱 Agora com tiles para zoom 0 a 17!');
                 
-                // Adicionar evento para debug
+                // Adicionar eventos para debug
                 camadaMeusTiles.on('tileload', function(e) {
                     console.log('✅ Tile carregado:', e.tile.src);
                 });
                 
                 camadaMeusTiles.on('tileerror', function(e) {
-                    console.log('❌ Erro ao carregar tile:', e.tile.src);
+                    console.warn('⚠️  Tile não encontrado (pode ser zoom 18+):', e.tile.src);
                 });
                 
                 // Adicionar ao mapa se estiver ativa
                 if (camadasAtivas['meus-tiles']) {
                     camadaMeusTiles.addTo(map);
                     console.log('✅ Camada de tiles adicionada ao mapa');
-                    
-                    // Se os tiles só existem no zoom 12, vamos dar zoom para esse nível
-                    setTimeout(() => {
-                        map.setZoom(12);
-                        // Tentar centralizar na área dos seus tiles
-                        // Pelas pastas 1545, 1546, 1547, vamos tentar uma coordenada aproximada
-                        map.setView([-18.0, -44.0], 12);
-                        console.log('Mapa ajustado para zoom 12 para mostrar os tiles');
-                    }, 500);
                 }
                 
             } catch (error) {
@@ -1007,7 +973,7 @@
             const bounds = layer.getBounds();
             map.fitBounds(bounds, { 
                 padding: [50, 50],
-                maxZoom: 12
+                maxZoom: 18
             });
         }
 
@@ -1068,11 +1034,6 @@
                         } else {
                             console.log('Camada de tiles já existe, adicionando ao mapa...');
                             camadaMeusTiles.addTo(map);
-                            // Ajustar para zoom 12 se necessário
-                            if (map.getZoom() !== 12) {
-                                map.setZoom(12);
-                                console.log('Ajustado para zoom 12 para mostrar tiles');
-                            }
                         }
                         console.log('✅ Camada de tiles pessoais ativada');
                     } else if (camadaMeusTiles) {
@@ -1157,6 +1118,7 @@
         // Função principal de inicialização
         function inicializarMapa() {
             console.log('🚀 Inicializando mapa...');
+            console.log('🎯 Agora com tiles para zoom 0 a 17!');
             
             // Carregar camadas vetoriais
             carregarCamadaBacias();
@@ -1170,15 +1132,11 @@
             document.getElementById('layer-bacias').checked = true;
             alternarCamada('bacias', true);
             
-            // Ativar os tiles por padrão para teste
+            // Ativar os tiles por padrão
             document.getElementById('layer-meus-tiles').checked = true;
             alternarCamada('meus-tiles', true);
             
             console.log('✅ Mapa inicializado com sucesso!');
-            console.log('📌 Instruções:');
-            console.log('1. Verifique se o zoom está em 12 (seus tiles só existem nesse nível)');
-            console.log('2. Use o menu para ativar/desativar camadas');
-            console.log('3. Abra o console (F12) para ver logs detalhados');
         }
 
         // Event Listeners
