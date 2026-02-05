@@ -106,6 +106,10 @@
             display: block;
         }
         
+        .hidden {
+            display: none !important;
+        }
+        
         .camada-title {
             color: #1e5799;
             font-size: 1.5rem;
@@ -407,7 +411,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Mapa Interativo da Bacia do Ibirité</h1>
+            <h1>Mapa Interativo - Bacia do Ibirité</h1>
             <p class="subtitle">Visualização de camadas históricas e de uso e cobertura do solo</p>
         </header>
         
@@ -452,20 +456,16 @@
                             <div class="group-content" id="raster-content">
                                 <!-- Camadas raster -->
                                 <div class="layer-item">
+                                    <span class="layer-name">Mapa de 1967</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-1967">
+                                </div>
+                                <div class="layer-item">
                                     <span class="layer-name">Mapa de 1976</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-1976">
                                 </div>
                                 <div class="layer-item">
                                     <span class="layer-name">Uso e Cobertura do Solo (LULC)</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-lulc">
-                                </div>
-                                <div class="layer-item">
-                                    <span class="layer-name">Imagem de Satélite (ESRI)</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-satelite">
-                                </div>
-                                <div class="layer-item">
-                                    <span class="layer-name">Mapa Base (OpenStreetMap)</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-base" checked>
                                 </div>
                             </div>
                         </div>
@@ -533,10 +533,9 @@
                             <li><strong>Camadas disponíveis:</strong></li>
                             <ul style="margin-left: 15px;">
                                 <li>Bacia do Ibirité (vetor)</li>
+                                <li>Mapa de 1967 (raster)</li>
                                 <li>Mapa de 1976 (raster)</li>
                                 <li>Uso e Cobertura do Solo (raster)</li>
-                                <li>Imagem de Satélite ESRI</li>
-                                <li>Mapa Base OpenStreetMap</li>
                             </ul>
                         </ul>
                     </div>
@@ -566,13 +565,14 @@
     <script>
         // URLs das camadas
         const BACIAS_URL = 'https://haroldgeorge901-dev.github.io/bacia/Bacia_Ibirite.geojson';
+        const TILES_1967_URL = 'https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png';
         const TILES_1976_URL = 'https://haroldgeorge901-dev.github.io/tiles1976/{z}/{x}/{y}.png';
         const TILES_LULC_URL = 'https://haroldgeorge901-dev.github.io/Tiles_LULC/{z}/{x}/{y}.png';
 
         // Inicialização do mapa
         const map = L.map('map').setView([-20.017, -44.059], 12);
 
-        // Camadas de mapa base
+        // Camadas de mapa base (sempre ativas, não aparecem no menu)
         let openStreetMapLayer = null;
         let satelliteLayer = null;
         let activeBaseLayer = 'street';
@@ -584,12 +584,21 @@
             minZoom: 8
         });
         
-        // Criar camada de satélite ESRI
+        // Criar camada de satélite ESRI (só usada pelo botão de alternância)
         const esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
             maxZoom: 19,
+            minZoom: 8
+        });
+
+        // Criar camada de mapa de 1967
+        const tiles1967Layer = L.tileLayer(TILES_1967_URL, {
+            attribution: 'Mapa de 1967',
             minZoom: 8,
-            opacity: 0.9
+            maxZoom: 18,
+            opacity: 0.9,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
         });
 
         // Criar camada de mapa de 1976
@@ -639,13 +648,12 @@
         const rasterHeader = document.getElementById('raster-header');
         const rasterContent = document.getElementById('raster-content');
         
-        // Estado das camadas
+        // Estado das camadas raster (somente as que aparecem no menu)
         const camadasAtivas = {
             'ibirité': false,
+            '1967': false,
             '1976': false,
-            'lulc': false,
-            'satelite': false,
-            'base': true
+            'lulc': false
         };
 
         // Função para alternar entre mapa de ruas e satélite (camada base)
@@ -653,14 +661,7 @@
             if (activeBaseLayer === 'street') {
                 // Mudar para satélite como camada base
                 map.removeLayer(openStreetMapLayer);
-                
-                // Usar camada de satélite como base
-                satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri',
-                    maxZoom: 19,
-                    minZoom: 8
-                });
-                satelliteLayer.addTo(map);
+                esriSatelliteLayer.addTo(map);
                 
                 activeBaseLayer = 'satellite';
                 satelliteToggleBtn.classList.add('active');
@@ -668,7 +669,7 @@
                 satelliteToggleBtn.querySelector('.tooltip').textContent = 'Alternar para mapa de ruas';
             } else {
                 // Mudar para mapa de ruas como base
-                map.removeLayer(satelliteLayer);
+                map.removeLayer(esriSatelliteLayer);
                 openStreetMapLayer.addTo(map);
                 activeBaseLayer = 'street';
                 satelliteToggleBtn.classList.remove('active');
@@ -801,8 +802,11 @@
 
         // Função para selecionar uma feição no mapa
         function selecionarFeature(layer, tipo, nome, properties) {
+            // Esconder as instruções e mostrar informações da camada
             defaultInfo.classList.remove('active');
+            defaultInfo.classList.add('hidden');
             camadaInfo.classList.add('active');
+            camadaInfo.classList.remove('hidden');
             
             camadaNome.textContent = `${tipo}: ${nome}`;
             
@@ -847,7 +851,15 @@
             });
         }
 
-        // Função para alternar camada
+        // Função para resetar o painel de informações
+        function resetarPainelInformacoes() {
+            defaultInfo.classList.add('active');
+            defaultInfo.classList.remove('hidden');
+            camadaInfo.classList.remove('active');
+            camadaInfo.classList.add('hidden');
+        }
+
+        // Função para alternar camada raster
         function alternarCamada(camadaId, ativa) {
             console.log(`Alternando camada ${camadaId} para ${ativa ? 'ativa' : 'inativa'}`);
             camadasAtivas[camadaId] = ativa;
@@ -864,22 +876,27 @@
                             });
                         } else {
                             map.removeLayer(camadaIbirité);
+                            // Resetar painel se estiver mostrando informações da bacia
+                            resetarPainelInformacoes();
                         }
+                    }
+                    break;
+                    
+                case '1967':
+                    if (ativa) {
+                        tiles1967Layer.addTo(map);
+                        // Desativar outras camadas raster
+                        desativarOutrasCamadasRaster('1967');
+                    } else {
+                        map.removeLayer(tiles1967Layer);
                     }
                     break;
                     
                 case '1976':
                     if (ativa) {
                         tiles1976Layer.addTo(map);
-                        // Desativar outras camadas raster se necessário
-                        if (camadasAtivas.lulc) {
-                            document.getElementById('layer-lulc').checked = false;
-                            alternarCamada('lulc', false);
-                        }
-                        if (camadasAtivas.satelite) {
-                            document.getElementById('layer-satelite').checked = false;
-                            alternarCamada('satelite', false);
-                        }
+                        // Desativar outras camadas raster
+                        desativarOutrasCamadasRaster('1976');
                     } else {
                         map.removeLayer(tiles1976Layer);
                     }
@@ -889,47 +906,31 @@
                     if (ativa) {
                         lulcLayer.addTo(map);
                         lulcLegend.classList.add('active');
-                        // Desativar outras camadas raster se necessário
-                        if (camadasAtivas['1976']) {
-                            document.getElementById('layer-1976').checked = false;
-                            alternarCamada('1976', false);
-                        }
-                        if (camadasAtivas.satelite) {
-                            document.getElementById('layer-satelite').checked = false;
-                            alternarCamada('satelite', false);
-                        }
+                        // Desativar outras camadas raster
+                        desativarOutrasCamadasRaster('lulc');
                     } else {
                         map.removeLayer(lulcLayer);
                         lulcLegend.classList.remove('active');
                     }
                     break;
-                    
-                case 'satelite':
-                    // Esta é a camada overlay de satélite
-                    if (ativa) {
-                        esriSatelliteLayer.addTo(map);
-                        // Desativar outras camadas raster se necessário
-                        if (camadasAtivas['1976']) {
-                            document.getElementById('layer-1976').checked = false;
-                            alternarCamada('1976', false);
-                        }
-                        if (camadasAtivas.lulc) {
-                            document.getElementById('layer-lulc').checked = false;
-                            alternarCamada('lulc', false);
-                        }
-                    } else {
-                        map.removeLayer(esriSatelliteLayer);
+            }
+        }
+
+        // Função para desativar outras camadas raster quando uma é ativada
+        function desativarOutrasCamadasRaster(camadaAtiva) {
+            const outrasCamadas = {
+                '1967': ['1976', 'lulc'],
+                '1976': ['1967', 'lulc'],
+                'lulc': ['1967', '1976']
+            };
+            
+            if (outrasCamadas[camadaAtiva]) {
+                outrasCamadas[camadaAtiva].forEach(camadaId => {
+                    if (camadasAtivas[camadaId]) {
+                        document.getElementById(`layer-${camadaId}`).checked = false;
+                        alternarCamada(camadaId, false);
                     }
-                    break;
-                    
-                case 'base':
-                    if (ativa) {
-                        openStreetMapLayer.addTo(map);
-                        activeBaseLayer = 'street';
-                    } else {
-                        map.removeLayer(openStreetMapLayer);
-                    }
-                    break;
+                });
             }
         }
 
@@ -979,6 +980,10 @@
                 alternarCamada('ibirité', this.checked);
             });
             
+            document.getElementById('layer-1967').addEventListener('change', function(e) {
+                alternarCamada('1967', this.checked);
+            });
+            
             document.getElementById('layer-1976').addEventListener('change', function(e) {
                 alternarCamada('1976', this.checked);
             });
@@ -986,22 +991,14 @@
             document.getElementById('layer-lulc').addEventListener('change', function(e) {
                 alternarCamada('lulc', this.checked);
             });
-            
-            document.getElementById('layer-satelite').addEventListener('change', function(e) {
-                alternarCamada('satelite', this.checked);
-            });
-            
-            document.getElementById('layer-base').addEventListener('change', function(e) {
-                alternarCamada('base', this.checked);
-            });
         }
 
         // Função para resetar o mapa
         function resetarMapa() {
             map.setView([-20.017, -44.059], 12);
             
-            defaultInfo.classList.add('active');
-            camadaInfo.classList.remove('active');
+            // Resetar painel de informações
+            resetarPainelInformacoes();
             
             // Se a bacia estiver ativa, centralizar nela
             if (camadasAtivas['ibirité'] && camadaIbirité) {
@@ -1017,6 +1014,7 @@
             console.log('🚀 Inicializando mapa...');
             console.log('🎯 Camadas disponíveis:');
             console.log('  - Bacia do Ibirité (vetor)');
+            console.log('  - Mapa de 1967 (raster)');
             console.log('  - Mapa de 1976 (raster)');
             console.log('  - Uso e Cobertura do Solo (raster)');
             
@@ -1026,12 +1024,9 @@
             // Inicializar menu
             inicializarMenu();
             
-            // Ativar camadas por padrão
+            // Ativar camada da bacia por padrão
             document.getElementById('layer-ibirité').checked = true;
             alternarCamada('ibirité', true);
-            
-            document.getElementById('layer-base').checked = true;
-            alternarCamada('base', true);
             
             console.log('✅ Mapa inicializado com sucesso!');
         }
