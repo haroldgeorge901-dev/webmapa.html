@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa Interativo de Camadas Vetoriais e Raster</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Adicionando ícone do Font Awesome para o botão de satélite -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -395,7 +394,7 @@
                                 <span class="group-icon">▼</span>
                             </div>
                             <div class="group-content" id="vector-content">
-                                <!-- Camadas vetoriais serão adicionadas dinamicamente -->
+                                <!-- Camadas vetoriais -->
                                 <div class="layer-item">
                                     <span class="layer-name">Limite das Bacias</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-bacias" checked>
@@ -422,20 +421,11 @@
                                 <span class="group-icon">▼</span>
                             </div>
                             <div class="group-content" id="raster-content">
-                                <!-- Camadas raster serão adicionadas dinamicamente -->
+                                <!-- Camadas raster -->
                                 <div class="layer-item">
-                                    <span class="layer-name">Imagem de Satélite</span>
+                                    <span class="layer-name">Imagem de Satélite (ESRI)</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-satelite">
                                 </div>
-                                <div class="layer-item">
-                                    <span class="layer-name">Mapa de Uso do Solo</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-uso-solo">
-                                </div>
-                                <div class="layer-item">
-                                    <span class="layer-name">Modelo Digital de Elevação</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-mde">
-                                </div>
-                                <!-- ADICIONE ESTA NOVA LINHA PARA SEUS TILES -->
                                 <div class="layer-item">
                                     <span class="layer-name">Meus Tiles Personalizados</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-meus-tiles">
@@ -474,6 +464,7 @@
                             <li>Clique em uma feição no mapa para ver detalhes</li>
                             <li>Use o botão "Resetar Vista" para voltar à visão inicial</li>
                             <li>Alternar para vista de satélite com o botão no canto inferior direito</li>
+                            <li><strong>Para ver seus tiles:</strong> marque "Meus Tiles Personalizados" e dê zoom até o nível 12</li>
                         </ul>
                     </div>
                     
@@ -500,21 +491,16 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // URLs dos GeoJSONs de exemplo (substitua com os seus URLs)
+        // URLs dos GeoJSONs
         const GEOJSON_BACIAS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
-        const GEOJSON_RIOS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
-        const GEOJSON_MUNICIPIOS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
-
-        // URLs das imagens raster de exemplo
-        const RASTER_SATELITE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        const RASTER_USO_SOLO_URL = '';
-        const RASTER_MDE_URL = '';
-
-        // URL dos seus tiles - IMPORTANTE: ajuste o padrão conforme sua estrutura
-        // Se seus tiles seguem o padrão: https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png
+        
+        // URL dos seus tiles - OBSERVAÇÃO IMPORTANTE:
+        // Você mencionou que tem tiles na estrutura 12/1545/2279.png
+        // Isso significa que você só tem tiles para o zoom level 12
         const SEUS_TILES_URL = 'https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png';
 
-        // Inicialização do mapa
+        // Inicialização do mapa - Vamos começar mais próximo do zoom 12
+        // Precisamos encontrar as coordenadas corretas para mostrar seus tiles
         const map = L.map('map').setView([-18.5122, -44.5550], 7);
 
         // Camadas de mapa base
@@ -528,10 +514,11 @@
             maxZoom: 19
         });
         
-        // Criar camada de satélite ESRI
-        satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19
+        // Criar camada de satélite ESRI (para usar como camada overlay, não base)
+        const esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19,
+            opacity: 0.7
         });
 
         // Adicionar camada padrão (OpenStreetMap)
@@ -541,10 +528,7 @@
         let camadaBacias = null;
         let camadaRios = null;
         let camadaMunicipios = null;
-        let camadaSatelite = null;
-        let camadaUsoSolo = null;
-        let camadaMDE = null;
-        let camadaMeusTiles = null; // Nova variável para seus tiles
+        let camadaMeusTiles = null;
         
         // Elementos do DOM
         const defaultInfo = document.getElementById('default-info');
@@ -572,63 +556,119 @@
             'rios': false,
             'municipios': false,
             'satelite': false,
-            'uso-solo': false,
-            'mde': false,
-            'meus-tiles': false // Adicionado para seus tiles
+            'meus-tiles': false
         };
 
-        // Função para alternar entre mapa de ruas e satélite
+        // Função para alternar entre mapa de ruas e satélite (camada base)
         function toggleSatelliteView() {
             if (activeBaseLayer === 'street') {
-                // Mudar para satélite
+                // Mudar para satélite como camada base
                 map.removeLayer(openStreetMapLayer);
+                
+                // Usar camada de satélite como base
+                satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri',
+                    maxZoom: 19
+                });
                 satelliteLayer.addTo(map);
+                
                 activeBaseLayer = 'satellite';
                 satelliteToggleBtn.classList.add('active');
                 satelliteIcon.className = 'fas fa-map';
-                // Atualizar tooltip
                 satelliteToggleBtn.querySelector('.tooltip').textContent = 'Alternar para mapa de ruas';
             } else {
-                // Mudar para mapa de ruas
+                // Mudar para mapa de ruas como base
                 map.removeLayer(satelliteLayer);
                 openStreetMapLayer.addTo(map);
                 activeBaseLayer = 'street';
                 satelliteToggleBtn.classList.remove('active');
                 satelliteIcon.className = 'fas fa-satellite';
-                // Atualizar tooltip
                 satelliteToggleBtn.querySelector('.tooltip').textContent = 'Alternar para satélite';
             }
         }
 
         // Função para carregar seus tiles personalizados
         function carregarMeusTiles() {
-            if (!SEUS_TILES_URL) {
-                console.error('URL dos tiles não configurada');
-                return;
+            console.log('Iniciando carregamento dos tiles...');
+            console.log('URL configurada:', SEUS_TILES_URL);
+            
+            // Primeiro, vamos testar se conseguimos acessar um tile específico
+            const testUrl = SEUS_TILES_URL.replace('{z}', '12').replace('{x}', '1545').replace('{y}', '2279');
+            console.log('Testando URL:', testUrl);
+            
+            fetch(testUrl)
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Tiles acessíveis! Criando camada...');
+                        criarCamadaTilesReal();
+                    } else {
+                        console.warn('❌ Não foi possível acessar os tiles via fetch, mas tentando criar camada de qualquer forma...');
+                        criarCamadaTilesReal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao testar tiles:', error);
+                    console.log('Tentando criar camada de qualquer forma...');
+                    criarCamadaTilesReal();
+                });
+        }
+        
+        function criarCamadaTilesReal() {
+            console.log('Criando camada de tiles com URL:', SEUS_TILES_URL);
+            
+            try {
+                // IMPORTANTE: Se você só tem tiles para zoom 12, precisamos configurar limites
+                camadaMeusTiles = L.tileLayer(SEUS_TILES_URL, {
+                    attribution: 'Tiles Pessoais',
+                    minZoom: 12,      // Só mostrar no zoom 12
+                    maxZoom: 12,      // Só mostrar no zoom 12
+                    tileSize: 256,
+                    opacity: 0.9,
+                    // Se não encontrar tile, não mostrar nada
+                    errorTileUrl: '',
+                    // Desativar detecção de erro para evitar logs desnecessários
+                    detectRetina: false
+                });
+                
+                console.log('✅ Camada de tiles criada com sucesso!');
+                console.log('Configurações:', {
+                    minZoom: camadaMeusTiles.options.minZoom,
+                    maxZoom: camadaMeusTiles.options.maxZoom,
+                    url: camadaMeusTiles._url
+                });
+                
+                // Adicionar evento para debug
+                camadaMeusTiles.on('tileload', function(e) {
+                    console.log('✅ Tile carregado:', e.tile.src);
+                });
+                
+                camadaMeusTiles.on('tileerror', function(e) {
+                    console.log('❌ Erro ao carregar tile:', e.tile.src);
+                });
+                
+                // Adicionar ao mapa se estiver ativa
+                if (camadasAtivas['meus-tiles']) {
+                    camadaMeusTiles.addTo(map);
+                    console.log('✅ Camada de tiles adicionada ao mapa');
+                    
+                    // Se os tiles só existem no zoom 12, vamos dar zoom para esse nível
+                    setTimeout(() => {
+                        map.setZoom(12);
+                        // Tentar centralizar na área dos seus tiles
+                        // Pelas pastas 1545, 1546, 1547, vamos tentar uma coordenada aproximada
+                        map.setView([-18.0, -44.0], 12);
+                        console.log('Mapa ajustado para zoom 12 para mostrar os tiles');
+                    }, 500);
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro ao criar camada de tiles:', error);
             }
-            
-            console.log('Carregando tiles de:', SEUS_TILES_URL);
-            
-            // Criar camada de tiles personalizados
-            camadaMeusTiles = L.tileLayer(SEUS_TILES_URL, {
-                attribution: 'Tiles pessoais',
-                minZoom: 0,
-                maxZoom: 18, // Ajuste conforme o máximo disponível em seus tiles
-                tileSize: 256,
-                opacity: 0.8 // Ajuste a opacidade conforme necessário
-            });
-            
-            // Adicionar ao mapa se estiver ativa
-            if (camadasAtivas['meus-tiles']) {
-                camadaMeusTiles.addTo(map);
-                console.log('Camada de tiles pessoais adicionada ao mapa');
-            }
-            
-            console.log('Camada de tiles pessoais criada com sucesso');
         }
 
         // Função para carregar camada de bacias
         function carregarCamadaBacias() {
+            console.log('Carregando camada de bacias...');
             fetch(GEOJSON_BACIAS_URL)
                 .then(response => {
                     if (!response.ok) {
@@ -638,7 +678,18 @@
                 })
                 .then(data => {
                     // Remover mensagem de carregamento
-                    document.querySelector('.loading').style.display = 'none';
+                    const loadingElement = document.querySelector('.loading');
+                    if (loadingElement) {
+                        loadingElement.style.display = 'none';
+                    }
+                    
+                    console.log('Dados de bacias carregados:', data);
+                    
+                    // Verificar se há features
+                    if (!data.features || data.features.length === 0) {
+                        console.warn('GeoJSON não contém features');
+                        return;
+                    }
                     
                     // Adicionar GeoJSON ao mapa
                     camadaBacias = L.geoJSON(data, {
@@ -653,7 +704,7 @@
                             // Extrair o nome das propriedades
                             const nome = extrairNome(feature.properties, 'bacia');
                             
-                            // Armazenar as propriedades no layer para acesso posterior
+                            // Armazenar as propriedades no layer
                             layer.properties = feature.properties;
                             layer.nome = nome;
                             
@@ -663,7 +714,8 @@
                                 Clique para detalhes
                             `, {
                                 permanent: false,
-                                direction: 'auto'
+                                direction: 'auto',
+                                className: 'custom-tooltip'
                             });
                             
                             // Adicionar evento de clique
@@ -673,7 +725,7 @@
                             
                             // Adicionar eventos de mouse
                             layer.on('mouseover', function() {
-                                layer.setStyle({
+                                this.setStyle({
                                     weight: 3,
                                     color: '#ffffff',
                                     fillOpacity: 0.5
@@ -681,7 +733,7 @@
                             });
                             
                             layer.on('mouseout', function() {
-                                layer.setStyle({
+                                this.setStyle({
                                     weight: 2,
                                     color: 'white',
                                     fillOpacity: 0.3
@@ -693,22 +745,26 @@
                     // Adicionar ao mapa se estiver ativa
                     if (camadasAtivas.bacias) {
                         camadaBacias.addTo(map);
+                        // Ajustar a vista para mostrar as bacias
+                        map.fitBounds(camadaBacias.getBounds());
                     }
                     
                     console.log('Camada de bacias carregada com sucesso');
                 })
                 .catch(error => {
                     console.error('Erro ao carregar GeoJSON de bacias:', error);
-                    document.querySelector('.loading').innerHTML = 'Erro ao carregar a camada de bacias.';
+                    const loadingElement = document.querySelector('.loading');
+                    if (loadingElement) {
+                        loadingElement.innerHTML = 'Erro ao carregar a camada de bacias.';
+                    }
                 });
         }
 
-        // Função para carregar camada de rios
+        // Função para carregar camada de rios (dados de exemplo)
         function carregarCamadaRios() {
-            // Como não temos um URL específico, vamos criar dados de exemplo
-            // Na prática, você substituiria por um fetch do seu GeoJSON de rios
+            console.log('Carregando camada de rios...');
             
-            // Criar dados de exemplo para rios
+            // Dados de exemplo para rios
             const riosData = {
                 "type": "FeatureCollection",
                 "features": [
@@ -769,14 +825,14 @@
                     
                     // Adicionar eventos de mouse
                     layer.on('mouseover', function() {
-                        layer.setStyle({
+                        this.setStyle({
                             weight: 5,
                             opacity: 1
                         });
                     });
                     
                     layer.on('mouseout', function() {
-                        layer.setStyle({
+                        this.setStyle({
                             weight: 3,
                             opacity: 0.8
                         });
@@ -792,12 +848,11 @@
             console.log('Camada de rios carregada com sucesso');
         }
 
-        // Função para carregar camada de municípios
+        // Função para carregar camada de municípios (dados de exemplo)
         function carregarCamadaMunicipios() {
-            // Como não temos um URL específico, vamos criar dados de exemplo
-            // Na prática, você substituiria por um fetch do seu GeoJSON de municípios
+            console.log('Carregando camada de municípios...');
             
-            // Criar dados de exemplo para municípios
+            // Dados de exemplo para municípios
             const municipiosData = {
                 "type": "FeatureCollection",
                 "features": [
@@ -860,14 +915,14 @@
                     
                     // Adicionar eventos de mouse
                     layer.on('mouseover', function() {
-                        layer.setStyle({
+                        this.setStyle({
                             fillOpacity: 0.4,
                             weight: 2
                         });
                     });
                     
                     layer.on('mouseout', function() {
-                        layer.setStyle({
+                        this.setStyle({
                             fillOpacity: 0.2,
                             weight: 1
                         });
@@ -885,10 +940,12 @@
 
         // Função para extrair nome das propriedades
         function extrairNome(properties, tipo) {
+            if (!properties) return `${tipo} Desconhecido`;
+            
             const propriedadesPossiveis = [
                 'NM_RGINT', 'NM_MUNICIPIO', 'NOME', 'nome', 'name', 'NM_MUN', 
                 'municipio', 'MUNICIPIO', 'CIDADE', 'cidade', 'regiao', 'REGIAO',
-                'bacia', 'BACIA'
+                'bacia', 'BACIA', 'NOMEMUN', 'MUNICÍPIO'
             ];
             
             for (const prop of propriedadesPossiveis) {
@@ -930,14 +987,16 @@
             featureHTML += '<h4 style="margin-bottom: 10px;">Propriedades:</h4>';
             
             // Listar todas as propriedades
-            for (const key in properties) {
-                if (properties.hasOwnProperty(key) && properties[key]) {
-                    featureHTML += `
-                        <div class="detalhe-item">
-                            <span class="detalhe-label">${key}:</span>
-                            <span>${properties[key]}</span>
-                        </div>
-                    `;
+            if (properties) {
+                for (const key in properties) {
+                    if (properties.hasOwnProperty(key) && properties[key] !== null && properties[key] !== undefined) {
+                        featureHTML += `
+                            <div class="detalhe-item">
+                                <span class="detalhe-label">${key}:</span>
+                                <span>${properties[key]}</span>
+                            </div>
+                        `;
+                    }
                 }
             }
             
@@ -948,12 +1007,13 @@
             const bounds = layer.getBounds();
             map.fitBounds(bounds, { 
                 padding: [50, 50],
-                maxZoom: 10
+                maxZoom: 12
             });
         }
 
         // Função para alternar camada
         function alternarCamada(camadaId, ativa) {
+            console.log(`Alternando camada ${camadaId} para ${ativa ? 'ativa' : 'inativa'}`);
             camadasAtivas[camadaId] = ativa;
             
             switch(camadaId) {
@@ -988,41 +1048,36 @@
                     break;
                     
                 case 'satelite':
+                    // Esta é a camada overlay de satélite (não a base)
                     if (ativa) {
-                        console.log('Ativando camada de satélite específica');
+                        console.log('Ativando camada overlay de satélite');
+                        esriSatelliteLayer.addTo(map);
                     } else {
-                        console.log('Desativando camada de satélite específica');
-                    }
-                    break;
-                    
-                case 'uso-solo':
-                    if (ativa) {
-                        console.log('Ativando camada de uso do solo');
-                    } else {
-                        console.log('Desativando camada de uso do solo');
-                    }
-                    break;
-                    
-                case 'mde':
-                    if (ativa) {
-                        console.log('Ativando camada de MDE');
-                    } else {
-                        console.log('Desativando camada de MDE');
+                        console.log('Desativando camada overlay de satélite');
+                        map.removeLayer(esriSatelliteLayer);
                     }
                     break;
                     
                 case 'meus-tiles':
+                    console.log(`Alternando camada de tiles: ${ativa ? 'ATIVAR' : 'DESATIVAR'}`);
                     if (ativa) {
                         // Carregar camada de tiles personalizados
                         if (!camadaMeusTiles) {
+                            console.log('Camada de tiles ainda não existe, criando...');
                             carregarMeusTiles();
                         } else {
+                            console.log('Camada de tiles já existe, adicionando ao mapa...');
                             camadaMeusTiles.addTo(map);
+                            // Ajustar para zoom 12 se necessário
+                            if (map.getZoom() !== 12) {
+                                map.setZoom(12);
+                                console.log('Ajustado para zoom 12 para mostrar tiles');
+                            }
                         }
-                        console.log('Camada de tiles pessoais ativada');
+                        console.log('✅ Camada de tiles pessoais ativada');
                     } else if (camadaMeusTiles) {
                         map.removeLayer(camadaMeusTiles);
-                        console.log('Camada de tiles pessoais desativada');
+                        console.log('✅ Camada de tiles pessoais desativada');
                     }
                     break;
             }
@@ -1086,15 +1141,6 @@
                 alternarCamada('satelite', this.checked);
             });
             
-            document.getElementById('layer-uso-solo').addEventListener('change', function(e) {
-                alternarCamada('uso-solo', this.checked);
-            });
-            
-            document.getElementById('layer-mde').addEventListener('change', function(e) {
-                alternarCamada('mde', this.checked);
-            });
-            
-            // Evento para o checkbox dos seus tiles
             document.getElementById('layer-meus-tiles').addEventListener('change', function(e) {
                 alternarCamada('meus-tiles', this.checked);
             });
@@ -1110,13 +1156,12 @@
 
         // Função principal de inicialização
         function inicializarMapa() {
+            console.log('🚀 Inicializando mapa...');
+            
             // Carregar camadas vetoriais
             carregarCamadaBacias();
             carregarCamadaRios();
             carregarCamadaMunicipios();
-            
-            // Inicializar camada de tiles pessoais (mas não adicionar ao mapa ainda)
-            carregarMeusTiles();
             
             // Inicializar menu
             inicializarMenu();
@@ -1125,12 +1170,15 @@
             document.getElementById('layer-bacias').checked = true;
             alternarCamada('bacias', true);
             
-            // Seus tiles começam desativados por padrão
-            // Para ativar por padrão, descomente as linhas abaixo:
-            // document.getElementById('layer-meus-tiles').checked = true;
-            // alternarCamada('meus-tiles', true);
+            // Ativar os tiles por padrão para teste
+            document.getElementById('layer-meus-tiles').checked = true;
+            alternarCamada('meus-tiles', true);
             
-            console.log('Mapa inicializado com sucesso!');
+            console.log('✅ Mapa inicializado com sucesso!');
+            console.log('📌 Instruções:');
+            console.log('1. Verifique se o zoom está em 12 (seus tiles só existem nesse nível)');
+            console.log('2. Use o menu para ativar/desativar camadas');
+            console.log('3. Abra o console (F12) para ver logs detalhados');
         }
 
         // Event Listeners
@@ -1139,6 +1187,7 @@
 
         // Inicializar o mapa quando a página carregar
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM carregado, inicializando mapa...');
             inicializarMapa();
         });
     </script>
