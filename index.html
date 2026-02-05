@@ -435,6 +435,11 @@
                                     <span class="layer-name">Modelo Digital de Elevação</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-mde">
                                 </div>
+                                <!-- ADICIONE ESTA NOVA LINHA PARA SEUS TILES -->
+                                <div class="layer-item">
+                                    <span class="layer-name">Meus Tiles Personalizados</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-meus-tiles">
+                                </div>
                                 <div class="layer-legend">
                                     <div class="legend-color" style="background: linear-gradient(to right, green, yellow, red);"></div>
                                     <span>Imagem raster: Cores naturais</span>
@@ -497,13 +502,17 @@
     <script>
         // URLs dos GeoJSONs de exemplo (substitua com os seus URLs)
         const GEOJSON_BACIAS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
-        const GEOJSON_RIOS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson'; // Substitua com URL dos rios
-        const GEOJSON_MUNICIPIOS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson'; // Substitua com URL dos municípios
-        
-        // URLs das imagens raster de exemplo (substitua com os seus URLs)
+        const GEOJSON_RIOS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
+        const GEOJSON_MUNICIPIOS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
+
+        // URLs das imagens raster de exemplo
         const RASTER_SATELITE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        const RASTER_USO_SOLO_URL = ''; // Substitua com URL do seu TIF (convertido para tiles)
-        const RASTER_MDE_URL = ''; // Substitua com URL do seu MDE (convertido para tiles)
+        const RASTER_USO_SOLO_URL = '';
+        const RASTER_MDE_URL = '';
+
+        // URL dos seus tiles - IMPORTANTE: ajuste o padrão conforme sua estrutura
+        // Se seus tiles seguem o padrão: https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png
+        const SEUS_TILES_URL = 'https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png';
 
         // Inicialização do mapa
         const map = L.map('map').setView([-18.5122, -44.5550], 7);
@@ -511,7 +520,7 @@
         // Camadas de mapa base
         let openStreetMapLayer = null;
         let satelliteLayer = null;
-        let activeBaseLayer = 'street'; // 'street' ou 'satellite'
+        let activeBaseLayer = 'street';
         
         // Criar camada OpenStreetMap (padrão)
         openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -535,6 +544,7 @@
         let camadaSatelite = null;
         let camadaUsoSolo = null;
         let camadaMDE = null;
+        let camadaMeusTiles = null; // Nova variável para seus tiles
         
         // Elementos do DOM
         const defaultInfo = document.getElementById('default-info');
@@ -563,7 +573,8 @@
             'municipios': false,
             'satelite': false,
             'uso-solo': false,
-            'mde': false
+            'mde': false,
+            'meus-tiles': false // Adicionado para seus tiles
         };
 
         // Função para alternar entre mapa de ruas e satélite
@@ -587,6 +598,33 @@
                 // Atualizar tooltip
                 satelliteToggleBtn.querySelector('.tooltip').textContent = 'Alternar para satélite';
             }
+        }
+
+        // Função para carregar seus tiles personalizados
+        function carregarMeusTiles() {
+            if (!SEUS_TILES_URL) {
+                console.error('URL dos tiles não configurada');
+                return;
+            }
+            
+            console.log('Carregando tiles de:', SEUS_TILES_URL);
+            
+            // Criar camada de tiles personalizados
+            camadaMeusTiles = L.tileLayer(SEUS_TILES_URL, {
+                attribution: 'Tiles pessoais',
+                minZoom: 0,
+                maxZoom: 18, // Ajuste conforme o máximo disponível em seus tiles
+                tileSize: 256,
+                opacity: 0.8 // Ajuste a opacidade conforme necessário
+            });
+            
+            // Adicionar ao mapa se estiver ativa
+            if (camadasAtivas['meus-tiles']) {
+                camadaMeusTiles.addTo(map);
+                console.log('Camada de tiles pessoais adicionada ao mapa');
+            }
+            
+            console.log('Camada de tiles pessoais criada com sucesso');
         }
 
         // Função para carregar camada de bacias
@@ -951,8 +989,6 @@
                     
                 case 'satelite':
                     if (ativa) {
-                        // Carregar camada de satélite (já temos a camada base de satélite)
-                        // Aqui você poderia carregar uma camada de satélite específica
                         console.log('Ativando camada de satélite específica');
                     } else {
                         console.log('Desativando camada de satélite específica');
@@ -961,25 +997,32 @@
                     
                 case 'uso-solo':
                     if (ativa) {
-                        // Carregar camada de uso do solo
-                        if (!camadaUsoSolo && RASTER_USO_SOLO_URL) {
-                            // Aqui você carregaria sua imagem TIF convertida para tiles
-                            console.log('Carregando camada de uso do solo');
-                        }
-                    } else if (camadaUsoSolo) {
-                        map.removeLayer(camadaUsoSolo);
+                        console.log('Ativando camada de uso do solo');
+                    } else {
+                        console.log('Desativando camada de uso do solo');
                     }
                     break;
                     
                 case 'mde':
                     if (ativa) {
-                        // Carregar camada de MDE
-                        if (!camadaMDE && RASTER_MDE_URL) {
-                            // Aqui você carregaria seu MDE convertido para tiles
-                            console.log('Carregando camada de MDE');
+                        console.log('Ativando camada de MDE');
+                    } else {
+                        console.log('Desativando camada de MDE');
+                    }
+                    break;
+                    
+                case 'meus-tiles':
+                    if (ativa) {
+                        // Carregar camada de tiles personalizados
+                        if (!camadaMeusTiles) {
+                            carregarMeusTiles();
+                        } else {
+                            camadaMeusTiles.addTo(map);
                         }
-                    } else if (camadaMDE) {
-                        map.removeLayer(camadaMDE);
+                        console.log('Camada de tiles pessoais ativada');
+                    } else if (camadaMeusTiles) {
+                        map.removeLayer(camadaMeusTiles);
+                        console.log('Camada de tiles pessoais desativada');
                     }
                     break;
             }
@@ -1050,6 +1093,11 @@
             document.getElementById('layer-mde').addEventListener('change', function(e) {
                 alternarCamada('mde', this.checked);
             });
+            
+            // Evento para o checkbox dos seus tiles
+            document.getElementById('layer-meus-tiles').addEventListener('change', function(e) {
+                alternarCamada('meus-tiles', this.checked);
+            });
         }
 
         // Função para resetar o mapa
@@ -1062,10 +1110,13 @@
 
         // Função principal de inicialização
         function inicializarMapa() {
-            // Carregar camadas
+            // Carregar camadas vetoriais
             carregarCamadaBacias();
             carregarCamadaRios();
             carregarCamadaMunicipios();
+            
+            // Inicializar camada de tiles pessoais (mas não adicionar ao mapa ainda)
+            carregarMeusTiles();
             
             // Inicializar menu
             inicializarMenu();
@@ -1073,6 +1124,11 @@
             // Ativar camada de bacias por padrão
             document.getElementById('layer-bacias').checked = true;
             alternarCamada('bacias', true);
+            
+            // Seus tiles começam desativados por padrão
+            // Para ativar por padrão, descomente as linhas abaixo:
+            // document.getElementById('layer-meus-tiles').checked = true;
+            // alternarCamada('meus-tiles', true);
             
             console.log('Mapa inicializado com sucesso!');
         }
