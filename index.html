@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Interativo de Camadas Vetoriais e Raster</title>
+    <title>Mapa Interativo - Bacia do Ibirité</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Mantenha todo o CSS anterior igual */
         * {
             margin: 0;
             padding: 0;
@@ -366,13 +365,50 @@
             background: #1e5799;
             color: white;
         }
+        
+        /* Estilo para legenda do LULC */
+        .lulc-legend {
+            position: absolute;
+            bottom: 70px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 200px;
+            display: none;
+        }
+        
+        .lulc-legend.active {
+            display: block;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+        
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1e5799;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Mapa Interativo de Camadas Vetoriais e Raster</h1>
-            <p class="subtitle">Visualize e gerencie camadas vetoriais e imagens raster no mapa</p>
+            <h1>Mapa Interativo da Bacia do Ibirité</h1>
+            <p class="subtitle">Visualização de camadas históricas e de uso e cobertura do solo</p>
         </header>
         
         <div class="map-container">
@@ -397,16 +433,8 @@
                             <div class="group-content" id="vector-content">
                                 <!-- Camadas vetoriais -->
                                 <div class="layer-item">
-                                    <span class="layer-name">Limite das Bacias</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-bacias" checked>
-                                </div>
-                                <div class="layer-item">
-                                    <span class="layer-name">Rios Principais</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-rios">
-                                </div>
-                                <div class="layer-item">
-                                    <span class="layer-name">Limite Municipal</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-municipios">
+                                    <span class="layer-name">Bacia do Ibirité</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-ibirité" checked>
                                 </div>
                                 <div class="layer-legend">
                                     <div class="legend-color" style="background-color: #1e5799;"></div>
@@ -418,22 +446,26 @@
                         <!-- Grupo de imagens raster -->
                         <div class="layer-group">
                             <div class="group-header" id="raster-header">
-                                <span>Imagens Raster</span>
+                                <span>Camadas Raster</span>
                                 <span class="group-icon">▼</span>
                             </div>
                             <div class="group-content" id="raster-content">
                                 <!-- Camadas raster -->
                                 <div class="layer-item">
+                                    <span class="layer-name">Mapa de 1976</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-1976">
+                                </div>
+                                <div class="layer-item">
+                                    <span class="layer-name">Uso e Cobertura do Solo (LULC)</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-lulc">
+                                </div>
+                                <div class="layer-item">
                                     <span class="layer-name">Imagem de Satélite (ESRI)</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-satelite">
                                 </div>
                                 <div class="layer-item">
-                                    <span class="layer-name">Meus Tiles Personalizados (0-17)</span>
-                                    <input type="checkbox" class="layer-checkbox" id="layer-meus-tiles" checked>
-                                </div>
-                                <div class="layer-legend">
-                                    <div class="legend-color" style="background: linear-gradient(to right, green, yellow, red);"></div>
-                                    <span>Imagem raster: Cores naturais</span>
+                                    <span class="layer-name">Mapa Base (OpenStreetMap)</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-base" checked>
                                 </div>
                             </div>
                         </div>
@@ -450,6 +482,39 @@
                     <div class="tooltip">Alternar para satélite</div>
                     <i class="fas fa-satellite"></i>
                 </div>
+                
+                <!-- Legenda do LULC -->
+                <div class="lulc-legend" id="lulc-legend">
+                    <div class="legend-title">Uso e Cobertura do Solo</div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #006837;"></div>
+                        <span>Floresta</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #31a354;"></div>
+                        <span>Vegetação Natural</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #78c679;"></div>
+                        <span>Pastagem</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #c2e699;"></div>
+                        <span>Agricultura</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #ffffcc;"></div>
+                        <span>Solo Exposto</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #fd8d3c;"></div>
+                        <span>Área Urbana</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color-box" style="background-color: #0066cc;"></div>
+                        <span>Água</span>
+                    </div>
+                </div>
             </div>
             
             <div class="info-panel">
@@ -462,10 +527,17 @@
                         <p><strong>Instruções:</strong></p>
                         <ul style="margin-top: 10px; padding-left: 20px;">
                             <li>Use o menu de camadas para ativar/desativar camadas</li>
-                            <li>Clique em uma feição no mapa para ver detalhes</li>
+                            <li>Clique na bacia do Ibirité para ver detalhes</li>
                             <li>Use o botão "Resetar Vista" para voltar à visão inicial</li>
                             <li>Alternar para vista de satélite com o botão no canto inferior direito</li>
-                            <li><strong>Seus tiles pessoais:</strong> Agora com múltiplos níveis de zoom (0-17)!</li>
+                            <li><strong>Camadas disponíveis:</strong></li>
+                            <ul style="margin-left: 15px;">
+                                <li>Bacia do Ibirité (vetor)</li>
+                                <li>Mapa de 1976 (raster)</li>
+                                <li>Uso e Cobertura do Solo (raster)</li>
+                                <li>Imagem de Satélite ESRI</li>
+                                <li>Mapa Base OpenStreetMap</li>
+                            </ul>
                         </ul>
                     </div>
                     
@@ -485,21 +557,20 @@
         </div>
         
         <footer>
-            <p>Mapa Interativo de Camadas Vetoriais e Raster</p>
+            <p>Mapa Interativo - Bacia do Ibirité | Dados históricos e de uso do solo</p>
         </footer>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // URLs dos GeoJSONs
-        const GEOJSON_BACIAS_URL = 'https://raw.githubusercontent.com/haroldgeorge1a-sudo/basins/7a938f9dcdff65fed2d81c812ed56178eaa33af5/MGREGIOES.geojson';
-        
-        // URL dos seus tiles - AGORA COM MÚLTIPLOS NÍVEIS DE ZOOM (0-17)!
-        const SEUS_TILES_URL = 'https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png';
+        // URLs das camadas
+        const BACIAS_URL = 'https://haroldgeorge901-dev.github.io/bacia/Bacia_Ibirite.geojson';
+        const TILES_1976_URL = 'https://haroldgeorge901-dev.github.io/tiles1976/{z}/{x}/{y}.png';
+        const TILES_LULC_URL = 'https://haroldgeorge901-dev.github.io/Tiles_LULC/{z}/{x}/{y}.png';
 
         // Inicialização do mapa
-        const map = L.map('map').setView([-18.5122, -44.5550], 7);
+        const map = L.map('map').setView([-20.017, -44.059], 12);
 
         // Camadas de mapa base
         let openStreetMapLayer = null;
@@ -509,24 +580,43 @@
         // Criar camada OpenStreetMap (padrão)
         openStreetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
+            maxZoom: 19,
+            minZoom: 8
         });
         
-        // Criar camada de satélite ESRI (para usar como camada overlay, não base)
+        // Criar camada de satélite ESRI
         const esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
             maxZoom: 19,
-            opacity: 0.7
+            minZoom: 8,
+            opacity: 0.9
+        });
+
+        // Criar camada de mapa de 1976
+        const tiles1976Layer = L.tileLayer(TILES_1976_URL, {
+            attribution: 'Mapa de 1976',
+            minZoom: 8,
+            maxZoom: 18,
+            opacity: 0.9,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+        });
+
+        // Criar camada de LULC
+        const lulcLayer = L.tileLayer(TILES_LULC_URL, {
+            attribution: 'Uso e Cobertura do Solo',
+            minZoom: 8,
+            maxZoom: 18,
+            opacity: 0.8,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
         });
 
         // Adicionar camada padrão (OpenStreetMap)
         openStreetMapLayer.addTo(map);
 
         // Variáveis globais para camadas
-        let camadaBacias = null;
-        let camadaRios = null;
-        let camadaMunicipios = null;
-        let camadaMeusTiles = null;
+        let camadaIbirité = null;
         
         // Elementos do DOM
         const defaultInfo = document.getElementById('default-info');
@@ -537,6 +627,7 @@
         const resetMapBtn = document.getElementById('reset-map');
         const satelliteToggleBtn = document.getElementById('satellite-toggle');
         const satelliteIcon = satelliteToggleBtn.querySelector('i');
+        const lulcLegend = document.getElementById('lulc-legend');
         
         // Elementos do menu de camadas
         const layerMenu = document.getElementById('layer-menu');
@@ -550,11 +641,11 @@
         
         // Estado das camadas
         const camadasAtivas = {
-            'bacias': false,
-            'rios': false,
-            'municipios': false,
+            'ibirité': false,
+            '1976': false,
+            'lulc': false,
             'satelite': false,
-            'meus-tiles': false
+            'base': true
         };
 
         // Função para alternar entre mapa de ruas e satélite (camada base)
@@ -566,7 +657,8 @@
                 // Usar camada de satélite como base
                 satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                     attribution: 'Tiles &copy; Esri',
-                    maxZoom: 19
+                    maxZoom: 19,
+                    minZoom: 8
                 });
                 satelliteLayer.addTo(map);
                 
@@ -585,60 +677,13 @@
             }
         }
 
-        // Função para carregar seus tiles personalizados - VERSÃO SIMPLIFICADA
-        function carregarMeusTiles() {
-            console.log('🚀 Criando camada de tiles com múltiplos níveis de zoom (0-17)...');
-            
-            try {
-                // Criação SIMPLES da camada - agora com tiles para todos os níveis!
-                camadaMeusTiles = L.tileLayer(SEUS_TILES_URL, {
-                    attribution: 'Tiles Pessoais',
-                    minZoom: 0,      // Temos tiles a partir do zoom 0
-                    maxZoom: 17,     // Temos tiles até o zoom 17
-                    tileSize: 256,
-                    opacity: 0.9,
-                    // Tile vazio transparente para quando não encontrar (caso dê zoom 18+)
-                    errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-                    detectRetina: false
-                    // NÃO precisamos mais do getTileUrl personalizado!
-                    // O Leaflet vai automaticamente buscar os tiles no zoom correto
-                });
-                
-                console.log('✅ Camada de tiles criada com sucesso!');
-                console.log('Configurações:', {
-                    minZoom: camadaMeusTiles.options.minZoom,
-                    maxZoom: camadaMeusTiles.options.maxZoom,
-                    url: SEUS_TILES_URL
-                });
-                console.log('📱 Agora com tiles para zoom 0 a 17!');
-                
-                // Adicionar eventos para debug
-                camadaMeusTiles.on('tileload', function(e) {
-                    console.log('✅ Tile carregado:', e.tile.src);
-                });
-                
-                camadaMeusTiles.on('tileerror', function(e) {
-                    console.warn('⚠️  Tile não encontrado (pode ser zoom 18+):', e.tile.src);
-                });
-                
-                // Adicionar ao mapa se estiver ativa
-                if (camadasAtivas['meus-tiles']) {
-                    camadaMeusTiles.addTo(map);
-                    console.log('✅ Camada de tiles adicionada ao mapa');
-                }
-                
-            } catch (error) {
-                console.error('❌ Erro ao criar camada de tiles:', error);
-            }
-        }
-
-        // Função para carregar camada de bacias
-        function carregarCamadaBacias() {
-            console.log('Carregando camada de bacias...');
-            fetch(GEOJSON_BACIAS_URL)
+        // Função para carregar camada da Bacia do Ibirité
+        function carregarCamadaIbirité() {
+            console.log('Carregando camada da Bacia do Ibirité...');
+            fetch(BACIAS_URL)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Erro ao carregar o GeoJSON de bacias');
+                        throw new Error('Erro ao carregar o GeoJSON da Bacia do Ibirité');
                     }
                     return response.json();
                 })
@@ -649,7 +694,7 @@
                         loadingElement.style.display = 'none';
                     }
                     
-                    console.log('Dados de bacias carregados:', data);
+                    console.log('Dados da Bacia do Ibirité carregados:', data);
                     
                     // Verificar se há features
                     if (!data.features || data.features.length === 0) {
@@ -658,17 +703,17 @@
                     }
                     
                     // Adicionar GeoJSON ao mapa
-                    camadaBacias = L.geoJSON(data, {
+                    camadaIbirité = L.geoJSON(data, {
                         style: {
                             fillColor: '#1e5799',
-                            weight: 2,
+                            weight: 3,
                             opacity: 1,
-                            color: 'white',
+                            color: '#ffffff',
                             fillOpacity: 0.3
                         },
                         onEachFeature: function(feature, layer) {
                             // Extrair o nome das propriedades
-                            const nome = extrairNome(feature.properties, 'bacia');
+                            const nome = extrairNome(feature.properties, 'Bacia do Ibirité');
                             
                             // Armazenar as propriedades no layer
                             layer.properties = feature.properties;
@@ -686,13 +731,13 @@
                             
                             // Adicionar evento de clique
                             layer.on('click', function(e) {
-                                selecionarFeature(layer, 'Bacia', nome, feature.properties);
+                                selecionarFeature(layer, 'Bacia do Ibirité', nome, feature.properties);
                             });
                             
                             // Adicionar eventos de mouse
                             layer.on('mouseover', function() {
                                 this.setStyle({
-                                    weight: 3,
+                                    weight: 4,
                                     color: '#ffffff',
                                     fillOpacity: 0.5
                                 });
@@ -700,8 +745,8 @@
                             
                             layer.on('mouseout', function() {
                                 this.setStyle({
-                                    weight: 2,
-                                    color: 'white',
+                                    weight: 3,
+                                    color: '#ffffff',
                                     fillOpacity: 0.3
                                 });
                             });
@@ -709,209 +754,34 @@
                     });
                     
                     // Adicionar ao mapa se estiver ativa
-                    if (camadasAtivas.bacias) {
-                        camadaBacias.addTo(map);
-                        // Ajustar a vista para mostrar as bacias
-                        map.fitBounds(camadaBacias.getBounds());
+                    if (camadasAtivas['ibirité']) {
+                        camadaIbirité.addTo(map);
+                        // Ajustar a vista para mostrar a bacia
+                        map.fitBounds(camadaIbirité.getBounds(), { 
+                            padding: [50, 50],
+                            maxZoom: 13
+                        });
                     }
                     
-                    console.log('Camada de bacias carregada com sucesso');
+                    console.log('Camada da Bacia do Ibirité carregada com sucesso');
                 })
                 .catch(error => {
-                    console.error('Erro ao carregar GeoJSON de bacias:', error);
+                    console.error('Erro ao carregar GeoJSON da Bacia do Ibirité:', error);
                     const loadingElement = document.querySelector('.loading');
                     if (loadingElement) {
-                        loadingElement.innerHTML = 'Erro ao carregar a camada de bacias.';
+                        loadingElement.innerHTML = 'Erro ao carregar a camada da Bacia do Ibirité.';
                     }
                 });
         }
 
-        // Função para carregar camada de rios (dados de exemplo)
-        function carregarCamadaRios() {
-            console.log('Carregando camada de rios...');
-            
-            // Dados de exemplo para rios
-            const riosData = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": [[-44.0, -18.0], [-44.5, -18.5], [-45.0, -19.0]]
-                        },
-                        "properties": {
-                            "nome": "Rio São Francisco",
-                            "tipo": "Rio Principal",
-                            "comprimento": "2800 km"
-                        }
-                    },
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": [[-43.5, -18.2], [-44.0, -18.7], [-44.5, -19.2]]
-                        },
-                        "properties": {
-                            "nome": "Rio Jequitinhonha",
-                            "tipo": "Rio Principal",
-                            "comprimento": "1090 km"
-                        }
-                    }
-                ]
-            };
-            
-            // Adicionar GeoJSON ao mapa
-            camadaRios = L.geoJSON(riosData, {
-                style: {
-                    color: '#1e5799',
-                    weight: 3,
-                    opacity: 0.8
-                },
-                onEachFeature: function(feature, layer) {
-                    const nome = feature.properties.nome || 'Rio Desconhecido';
-                    
-                    // Armazenar as propriedades
-                    layer.properties = feature.properties;
-                    layer.nome = nome;
-                    
-                    // Adicionar tooltip
-                    layer.bindTooltip(`
-                        <strong>${nome}</strong><br>
-                        ${feature.properties.tipo || 'Rio'}
-                    `, {
-                        permanent: false,
-                        direction: 'auto'
-                    });
-                    
-                    // Adicionar evento de clique
-                    layer.on('click', function(e) {
-                        selecionarFeature(layer, 'Rio', nome, feature.properties);
-                    });
-                    
-                    // Adicionar eventos de mouse
-                    layer.on('mouseover', function() {
-                        this.setStyle({
-                            weight: 5,
-                            opacity: 1
-                        });
-                    });
-                    
-                    layer.on('mouseout', function() {
-                        this.setStyle({
-                            weight: 3,
-                            opacity: 0.8
-                        });
-                    });
-                }
-            });
-            
-            // Adicionar ao mapa se estiver ativa
-            if (camadasAtivas.rios) {
-                camadaRios.addTo(map);
-            }
-            
-            console.log('Camada de rios carregada com sucesso');
-        }
-
-        // Função para carregar camada de municípios (dados de exemplo)
-        function carregarCamadaMunicipios() {
-            console.log('Carregando camada de municípios...');
-            
-            // Dados de exemplo para municípios
-            const municipiosData = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [[[-44.0, -18.0], [-43.8, -18.0], [-43.8, -18.2], [-44.0, -18.2], [-44.0, -18.0]]]
-                        },
-                        "properties": {
-                            "nome": "Belo Horizonte",
-                            "estado": "MG",
-                            "populacao": "2512070"
-                        }
-                    },
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [[[-44.5, -19.0], [-44.3, -19.0], [-44.3, -19.2], [-44.5, -19.2], [-44.5, -19.0]]]
-                        },
-                        "properties": {
-                            "nome": "Contagem",
-                            "estado": "MG",
-                            "populacao": "668949"
-                        }
-                    }
-                ]
-            };
-            
-            // Adicionar GeoJSON ao mapa
-            camadaMunicipios = L.geoJSON(municipiosData, {
-                style: {
-                    fillColor: '#9c27b0',
-                    weight: 1,
-                    opacity: 1,
-                    color: 'white',
-                    fillOpacity: 0.2
-                },
-                onEachFeature: function(feature, layer) {
-                    const nome = feature.properties.nome || 'Município Desconhecido';
-                    
-                    // Armazenar as propriedades
-                    layer.properties = feature.properties;
-                    layer.nome = nome;
-                    
-                    // Adicionar tooltip
-                    layer.bindTooltip(`
-                        <strong>${nome}</strong><br>
-                        População: ${feature.properties.populacao || 'N/D'}
-                    `, {
-                        permanent: false,
-                        direction: 'auto'
-                    });
-                    
-                    // Adicionar evento de clique
-                    layer.on('click', function(e) {
-                        selecionarFeature(layer, 'Município', nome, feature.properties);
-                    });
-                    
-                    // Adicionar eventos de mouse
-                    layer.on('mouseover', function() {
-                        this.setStyle({
-                            fillOpacity: 0.4,
-                            weight: 2
-                        });
-                    });
-                    
-                    layer.on('mouseout', function() {
-                        this.setStyle({
-                            fillOpacity: 0.2,
-                            weight: 1
-                        });
-                    });
-                }
-            });
-            
-            // Adicionar ao mapa se estiver ativa
-            if (camadasAtivas.municipios) {
-                camadaMunicipios.addTo(map);
-            }
-            
-            console.log('Camada de municípios carregada com sucesso');
-        }
-
         // Função para extrair nome das propriedades
         function extrairNome(properties, tipo) {
-            if (!properties) return `${tipo} Desconhecido`;
+            if (!properties) return tipo;
             
             const propriedadesPossiveis = [
                 'NM_RGINT', 'NM_MUNICIPIO', 'NOME', 'nome', 'name', 'NM_MUN', 
                 'municipio', 'MUNICIPIO', 'CIDADE', 'cidade', 'regiao', 'REGIAO',
-                'bacia', 'BACIA', 'NOMEMUN', 'MUNICÍPIO'
+                'bacia', 'BACIA', 'NOMEMUN', 'MUNICÍPIO', 'Ibirité', 'IBIRITÉ'
             ];
             
             for (const prop of propriedadesPossiveis) {
@@ -926,7 +796,7 @@
                 }
             }
             
-            return `${tipo} Desconhecido`;
+            return tipo;
         }
 
         // Função para selecionar uma feição no mapa
@@ -973,7 +843,7 @@
             const bounds = layer.getBounds();
             map.fitBounds(bounds, { 
                 padding: [50, 50],
-                maxZoom: 18
+                maxZoom: 14
             });
         }
 
@@ -983,62 +853,81 @@
             camadasAtivas[camadaId] = ativa;
             
             switch(camadaId) {
-                case 'bacias':
-                    if (camadaBacias) {
+                case 'ibirité':
+                    if (camadaIbirité) {
                         if (ativa) {
-                            camadaBacias.addTo(map);
+                            camadaIbirité.addTo(map);
+                            // Ajustar vista para a bacia
+                            map.fitBounds(camadaIbirité.getBounds(), { 
+                                padding: [50, 50],
+                                maxZoom: 13
+                            });
                         } else {
-                            map.removeLayer(camadaBacias);
+                            map.removeLayer(camadaIbirité);
                         }
                     }
                     break;
                     
-                case 'rios':
-                    if (camadaRios) {
-                        if (ativa) {
-                            camadaRios.addTo(map);
-                        } else {
-                            map.removeLayer(camadaRios);
+                case '1976':
+                    if (ativa) {
+                        tiles1976Layer.addTo(map);
+                        // Desativar outras camadas raster se necessário
+                        if (camadasAtivas.lulc) {
+                            document.getElementById('layer-lulc').checked = false;
+                            alternarCamada('lulc', false);
                         }
+                        if (camadasAtivas.satelite) {
+                            document.getElementById('layer-satelite').checked = false;
+                            alternarCamada('satelite', false);
+                        }
+                    } else {
+                        map.removeLayer(tiles1976Layer);
                     }
                     break;
                     
-                case 'municipios':
-                    if (camadaMunicipios) {
-                        if (ativa) {
-                            camadaMunicipios.addTo(map);
-                        } else {
-                            map.removeLayer(camadaMunicipios);
+                case 'lulc':
+                    if (ativa) {
+                        lulcLayer.addTo(map);
+                        lulcLegend.classList.add('active');
+                        // Desativar outras camadas raster se necessário
+                        if (camadasAtivas['1976']) {
+                            document.getElementById('layer-1976').checked = false;
+                            alternarCamada('1976', false);
                         }
+                        if (camadasAtivas.satelite) {
+                            document.getElementById('layer-satelite').checked = false;
+                            alternarCamada('satelite', false);
+                        }
+                    } else {
+                        map.removeLayer(lulcLayer);
+                        lulcLegend.classList.remove('active');
                     }
                     break;
                     
                 case 'satelite':
-                    // Esta é a camada overlay de satélite (não a base)
+                    // Esta é a camada overlay de satélite
                     if (ativa) {
-                        console.log('Ativando camada overlay de satélite');
                         esriSatelliteLayer.addTo(map);
+                        // Desativar outras camadas raster se necessário
+                        if (camadasAtivas['1976']) {
+                            document.getElementById('layer-1976').checked = false;
+                            alternarCamada('1976', false);
+                        }
+                        if (camadasAtivas.lulc) {
+                            document.getElementById('layer-lulc').checked = false;
+                            alternarCamada('lulc', false);
+                        }
                     } else {
-                        console.log('Desativando camada overlay de satélite');
                         map.removeLayer(esriSatelliteLayer);
                     }
                     break;
                     
-                case 'meus-tiles':
-                    console.log(`Alternando camada de tiles: ${ativa ? 'ATIVAR' : 'DESATIVAR'}`);
+                case 'base':
                     if (ativa) {
-                        // Carregar camada de tiles personalizados
-                        if (!camadaMeusTiles) {
-                            console.log('Camada de tiles ainda não existe, criando...');
-                            carregarMeusTiles();
-                        } else {
-                            console.log('Camada de tiles já existe, adicionando ao mapa...');
-                            camadaMeusTiles.addTo(map);
-                        }
-                        console.log('✅ Camada de tiles pessoais ativada');
-                    } else if (camadaMeusTiles) {
-                        map.removeLayer(camadaMeusTiles);
-                        console.log('✅ Camada de tiles pessoais desativada');
+                        openStreetMapLayer.addTo(map);
+                        activeBaseLayer = 'street';
+                    } else {
+                        map.removeLayer(openStreetMapLayer);
                     }
                     break;
             }
@@ -1086,55 +975,63 @@
             });
             
             // Eventos para os checkboxes das camadas
-            document.getElementById('layer-bacias').addEventListener('change', function(e) {
-                alternarCamada('bacias', this.checked);
+            document.getElementById('layer-ibirité').addEventListener('change', function(e) {
+                alternarCamada('ibirité', this.checked);
             });
             
-            document.getElementById('layer-rios').addEventListener('change', function(e) {
-                alternarCamada('rios', this.checked);
+            document.getElementById('layer-1976').addEventListener('change', function(e) {
+                alternarCamada('1976', this.checked);
             });
             
-            document.getElementById('layer-municipios').addEventListener('change', function(e) {
-                alternarCamada('municipios', this.checked);
+            document.getElementById('layer-lulc').addEventListener('change', function(e) {
+                alternarCamada('lulc', this.checked);
             });
             
             document.getElementById('layer-satelite').addEventListener('change', function(e) {
                 alternarCamada('satelite', this.checked);
             });
             
-            document.getElementById('layer-meus-tiles').addEventListener('change', function(e) {
-                alternarCamada('meus-tiles', this.checked);
+            document.getElementById('layer-base').addEventListener('change', function(e) {
+                alternarCamada('base', this.checked);
             });
         }
 
         // Função para resetar o mapa
         function resetarMapa() {
-            map.setView([-18.5122, -44.5550], 7);
+            map.setView([-20.017, -44.059], 12);
             
             defaultInfo.classList.add('active');
             camadaInfo.classList.remove('active');
+            
+            // Se a bacia estiver ativa, centralizar nela
+            if (camadasAtivas['ibirité'] && camadaIbirité) {
+                map.fitBounds(camadaIbirité.getBounds(), { 
+                    padding: [50, 50],
+                    maxZoom: 13
+                });
+            }
         }
 
         // Função principal de inicialização
         function inicializarMapa() {
             console.log('🚀 Inicializando mapa...');
-            console.log('🎯 Agora com tiles para zoom 0 a 17!');
+            console.log('🎯 Camadas disponíveis:');
+            console.log('  - Bacia do Ibirité (vetor)');
+            console.log('  - Mapa de 1976 (raster)');
+            console.log('  - Uso e Cobertura do Solo (raster)');
             
-            // Carregar camadas vetoriais
-            carregarCamadaBacias();
-            carregarCamadaRios();
-            carregarCamadaMunicipios();
+            // Carregar camada vetorial
+            carregarCamadaIbirité();
             
             // Inicializar menu
             inicializarMenu();
             
-            // Ativar camada de bacias por padrão
-            document.getElementById('layer-bacias').checked = true;
-            alternarCamada('bacias', true);
+            // Ativar camadas por padrão
+            document.getElementById('layer-ibirité').checked = true;
+            alternarCamada('ibirité', true);
             
-            // Ativar os tiles por padrão
-            document.getElementById('layer-meus-tiles').checked = true;
-            alternarCamada('meus-tiles', true);
+            document.getElementById('layer-base').checked = true;
+            alternarCamada('base', true);
             
             console.log('✅ Mapa inicializado com sucesso!');
         }
