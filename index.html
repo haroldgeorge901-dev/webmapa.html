@@ -238,7 +238,8 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             min-width: 250px;
-            overflow: hidden;
+            max-height: 500px;
+            overflow-y: auto;
         }
         
         .menu-header {
@@ -249,6 +250,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         .menu-title {
@@ -286,6 +290,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 48px;
+            z-index: 5;
         }
         
         .group-header:hover {
@@ -406,13 +413,46 @@
             margin-bottom: 10px;
             color: #1e5799;
         }
+        
+        /* Legenda para batimetria */
+        .batimetria-legend {
+            position: absolute;
+            bottom: 70px;
+            right: 230px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 150px;
+            display: none;
+        }
+        
+        .batimetria-legend.active {
+            display: block;
+        }
+        
+        .gradient-bar {
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        
+        .gradient-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Mapa Interativo - Bacia do Ibirité</h1>
-            <p class="subtitle">Visualização de camadas históricas e de uso e cobertura do solo</p>
+            <p class="subtitle">Visualização de camadas históricas, hidrográficas, batimétricas e de uso do solo</p>
         </header>
         
         <div class="map-container">
@@ -435,10 +475,17 @@
                                 <span class="group-icon">▼</span>
                             </div>
                             <div class="group-content" id="vector-content">
-                                <!-- Camadas vetoriais -->
                                 <div class="layer-item">
                                     <span class="layer-name">Bacia do Ibirité</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-ibirité" checked>
+                                </div>
+                                <div class="layer-item">
+                                    <span class="layer-name">Sub-Bacias</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-subbacias">
+                                </div>
+                                <div class="layer-item">
+                                    <span class="layer-name">Hidrografia</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-hidrografia">
                                 </div>
                                 <div class="layer-legend">
                                     <div class="legend-color" style="background-color: #1e5799;"></div>
@@ -447,14 +494,13 @@
                             </div>
                         </div>
                         
-                        <!-- Grupo de imagens raster -->
+                        <!-- Grupo de mapas históricos -->
                         <div class="layer-group">
-                            <div class="group-header" id="raster-header">
-                                <span>Camadas Raster</span>
+                            <div class="group-header" id="historicos-header">
+                                <span>Mapas Históricos</span>
                                 <span class="group-icon">▼</span>
                             </div>
-                            <div class="group-content" id="raster-content">
-                                <!-- Camadas raster -->
+                            <div class="group-content" id="historicos-content">
                                 <div class="layer-item">
                                     <span class="layer-name">Mapa de 1967</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-1967">
@@ -463,6 +509,42 @@
                                     <span class="layer-name">Mapa de 1976</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-1976">
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grupo de batimetria -->
+                        <div class="layer-group">
+                            <div class="group-header" id="batimetria-header">
+                                <span>Batimetria</span>
+                                <span class="group-icon">▼</span>
+                            </div>
+                            <div class="group-content" id="batimetria-content">
+                                <div class="layer-item">
+                                    <span class="layer-name">Batimetria 2024</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-bat2024">
+                                </div>
+                                <div class="layer-item">
+                                    <span class="layer-name">Batimetria 2008</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-bat2008">
+                                </div>
+                                <div class="layer-item">
+                                    <span class="layer-name">Batimetria 2003</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-bat2003">
+                                </div>
+                                <div class="layer-item">
+                                    <span class="layer-name">Batimetria 1995</span>
+                                    <input type="checkbox" class="layer-checkbox" id="layer-bat1995">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grupo de uso do solo -->
+                        <div class="layer-group">
+                            <div class="group-header" id="usosolo-header">
+                                <span>Uso do Solo</span>
+                                <span class="group-icon">▼</span>
+                            </div>
+                            <div class="group-content" id="usosolo-content">
                                 <div class="layer-item">
                                     <span class="layer-name">Uso e Cobertura do Solo (LULC)</span>
                                     <input type="checkbox" class="layer-checkbox" id="layer-lulc">
@@ -515,6 +597,16 @@
                         <span>Água</span>
                     </div>
                 </div>
+                
+                <!-- Legenda para batimetria -->
+                <div class="batimetria-legend" id="batimetria-legend">
+                    <div class="legend-title">Profundidade (m)</div>
+                    <div class="gradient-bar"></div>
+                    <div class="gradient-labels">
+                        <span>0m</span>
+                        <span>Profundo</span>
+                    </div>
+                </div>
             </div>
             
             <div class="info-panel">
@@ -527,16 +619,17 @@
                         <p><strong>Instruções:</strong></p>
                         <ul style="margin-top: 10px; padding-left: 20px;">
                             <li>Use o menu de camadas para ativar/desativar camadas</li>
-                            <li>Clique na bacia do Ibirité para ver detalhes</li>
+                            <li>Clique em qualquer feature vetorial para ver detalhes</li>
                             <li>Use o botão "Resetar Vista" para voltar à visão inicial</li>
                             <li>Alternar para vista de satélite com o botão no canto inferior direito</li>
-                            <li><strong>Camadas disponíveis:</strong></li>
+                            <li><strong>Grupos de camadas:</strong></li>
                             <ul style="margin-left: 15px;">
-                                <li>Bacia do Ibirité (vetor)</li>
-                                <li>Mapa de 1967 (raster)</li>
-                                <li>Mapa de 1976 (raster)</li>
-                                <li>Uso e Cobertura do Solo (raster)</li>
+                                <li><strong>Vetoriais:</strong> Bacia, Sub-bacias e Hidrografia</li>
+                                <li><strong>Históricos:</strong> Mapas de 1967 e 1976</li>
+                                <li><strong>Batimetria:</strong> Levantamentos de 1995 a 2024</li>
+                                <li><strong>Uso do Solo:</strong> Classificação LULC</li>
                             </ul>
+                            <li><em>Nota:</em> As camadas raster (históricos, batimetria e LULC) são mutuamente exclusivas para melhor visualização.</li>
                         </ul>
                     </div>
                     
@@ -556,7 +649,7 @@
         </div>
         
         <footer>
-            <p>Mapa Interativo - Bacia do Ibirité | Dados históricos e de uso do solo</p>
+            <p>Mapa Interativo - Bacia do Ibirité | Dados históricos, hidrográficos, batimétricos e de uso do solo</p>
         </footer>
     </div>
 
@@ -565,9 +658,19 @@
     <script>
         // URLs das camadas
         const BACIAS_URL = 'https://haroldgeorge901-dev.github.io/bacia/Bacia_Ibirite.geojson';
+        const SUB_BACIAS_URL = 'https://haroldgeorge901-dev.github.io/Subbacias/Sub_Bacias.geojson';
+        const HIDROGRAFIA_URL = 'https://haroldgeorge901-dev.github.io/Hidrografia/Hidrografia.geojson';
+        
+        // URLs das camadas raster
         const TILES_1967_URL = 'https://haroldgeorge901-dev.github.io/tiles/{z}/{x}/{y}.png';
         const TILES_1976_URL = 'https://haroldgeorge901-dev.github.io/tiles1976/{z}/{x}/{y}.png';
         const TILES_LULC_URL = 'https://haroldgeorge901-dev.github.io/Tiles_LULC/{z}/{x}/{y}.png';
+        
+        // URLs das batimetrias
+        const BAT_2024_URL = 'https://haroldgeorge901-dev.github.io/Batimetria2024/{z}/{x}/{y}.png';
+        const BAT_2008_URL = 'https://haroldgeorge901-dev.github.io/Batimetria2008/{z}/{x}/{y}.png';
+        const BAT_2003_URL = 'https://haroldgeorge901-dev.github.io/Batimetria2003/{z}/{x}/{y}.png';
+        const BAT_1995_URL = 'https://haroldgeorge901-dev.github.io/Batimetria1995/{z}/{x}/{y}.png';
 
         // Inicialização do mapa
         const map = L.map('map').setView([-20.017, -44.059], 12);
@@ -621,11 +724,50 @@
             errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
         });
 
+        // Criar camadas de batimetria
+        const bat2024Layer = L.tileLayer(BAT_2024_URL, {
+            attribution: 'Batimetria 2024',
+            minZoom: 8,
+            maxZoom: 18,
+            opacity: 0.8,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+        });
+
+        const bat2008Layer = L.tileLayer(BAT_2008_URL, {
+            attribution: 'Batimetria 2008',
+            minZoom: 8,
+            maxZoom: 18,
+            opacity: 0.8,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+        });
+
+        const bat2003Layer = L.tileLayer(BAT_2003_URL, {
+            attribution: 'Batimetria 2003',
+            minZoom: 8,
+            maxZoom: 18,
+            opacity: 0.8,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+        });
+
+        const bat1995Layer = L.tileLayer(BAT_1995_URL, {
+            attribution: 'Batimetria 1995',
+            minZoom: 8,
+            maxZoom: 18,
+            opacity: 0.8,
+            tileSize: 256,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+        });
+
         // Adicionar camada padrão (OpenStreetMap)
         openStreetMapLayer.addTo(map);
 
-        // Variáveis globais para camadas
+        // Variáveis globais para camadas vetoriais
         let camadaIbirité = null;
+        let camadaSubbacias = null;
+        let camadaHidrografia = null;
         
         // Elementos do DOM
         const defaultInfo = document.getElementById('default-info');
@@ -637,6 +779,7 @@
         const satelliteToggleBtn = document.getElementById('satellite-toggle');
         const satelliteIcon = satelliteToggleBtn.querySelector('i');
         const lulcLegend = document.getElementById('lulc-legend');
+        const batimetriaLegend = document.getElementById('batimetria-legend');
         
         // Elementos do menu de camadas
         const layerMenu = document.getElementById('layer-menu');
@@ -645,14 +788,24 @@
         const menuContent = document.getElementById('menu-content');
         const vectorHeader = document.getElementById('vector-header');
         const vectorContent = document.getElementById('vector-content');
-        const rasterHeader = document.getElementById('raster-header');
-        const rasterContent = document.getElementById('raster-content');
+        const historicosHeader = document.getElementById('historicos-header');
+        const historicosContent = document.getElementById('historicos-content');
+        const batimetriaHeader = document.getElementById('batimetria-header');
+        const batimetriaContent = document.getElementById('batimetria-content');
+        const usoSoloHeader = document.getElementById('usosolo-header');
+        const usoSoloContent = document.getElementById('usosolo-content');
         
-        // Estado das camadas raster (somente as que aparecem no menu)
+        // Estado das camadas
         const camadasAtivas = {
             'ibirité': false,
+            'subbacias': false,
+            'hidrografia': false,
             '1967': false,
             '1976': false,
+            'bat2024': false,
+            'bat2008': false,
+            'bat2003': false,
+            'bat1995': false,
             'lulc': false
         };
 
@@ -719,6 +872,7 @@
                             // Armazenar as propriedades no layer
                             layer.properties = feature.properties;
                             layer.nome = nome;
+                            layer.tipo = 'Bacia';
                             
                             // Adicionar tooltip com o nome
                             layer.bindTooltip(`
@@ -775,6 +929,172 @@
                 });
         }
 
+        // Função para carregar camada de Sub-bacias
+        function carregarCamadaSubbacias() {
+            console.log('Carregando camada de Sub-bacias...');
+            fetch(SUB_BACIAS_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar o GeoJSON de Sub-bacias');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Dados de Sub-bacias carregados:', data);
+                    
+                    // Adicionar GeoJSON ao mapa
+                    camadaSubbacias = L.geoJSON(data, {
+                        style: {
+                            fillColor: '#2e8b57',
+                            weight: 2,
+                            opacity: 1,
+                            color: '#ffffff',
+                            fillOpacity: 0.3,
+                            dashArray: '5, 5'
+                        },
+                        onEachFeature: function(feature, layer) {
+                            // Extrair o nome das propriedades
+                            const nome = extrairNome(feature.properties, 'Sub-bacia');
+                            
+                            // Armazenar as propriedades no layer
+                            layer.properties = feature.properties;
+                            layer.nome = nome;
+                            layer.tipo = 'Sub-bacia';
+                            
+                            // Adicionar tooltip com o nome
+                            layer.bindTooltip(`
+                                <strong>${nome}</strong><br>
+                                Sub-bacia - Clique para detalhes
+                            `, {
+                                permanent: false,
+                                direction: 'auto'
+                            });
+                            
+                            // Adicionar evento de clique
+                            layer.on('click', function(e) {
+                                selecionarFeature(layer, 'Sub-bacia', nome, feature.properties);
+                            });
+                            
+                            // Adicionar eventos de mouse
+                            layer.on('mouseover', function() {
+                                this.setStyle({
+                                    weight: 3,
+                                    color: '#ffffff',
+                                    fillOpacity: 0.5
+                                });
+                            });
+                            
+                            layer.on('mouseout', function() {
+                                this.setStyle({
+                                    weight: 2,
+                                    color: '#ffffff',
+                                    fillOpacity: 0.3
+                                });
+                            });
+                        }
+                    });
+                    
+                    // Adicionar ao mapa se estiver ativa
+                    if (camadasAtivas['subbacias']) {
+                        camadaSubbacias.addTo(map);
+                    }
+                    
+                    console.log('Camada de Sub-bacias carregada com sucesso');
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar GeoJSON de Sub-bacias:', error);
+                });
+        }
+
+        // Função para carregar camada de Hidrografia
+        function carregarCamadaHidrografia() {
+            console.log('Carregando camada de Hidrografia...');
+            fetch(HIDROGRAFIA_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar o GeoJSON de Hidrografia');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Dados de Hidrografia carregados:', data);
+                    
+                    // Adicionar GeoJSON ao mapa
+                    camadaHidrografia = L.geoJSON(data, {
+                        style: function(feature) {
+                            // Estilo baseado no tipo de hidrografia
+                            const tipo = feature.properties.tipo || feature.properties.TIPO || 'curso_dagua';
+                            let color = '#1e90ff';
+                            let weight = 2;
+                            
+                            // Ajustar estilo baseado no tipo
+                            if (tipo.toLowerCase().includes('rio') || tipo.toLowerCase().includes('principal')) {
+                                color = '#0066cc';
+                                weight = 3;
+                            } else if (tipo.toLowerCase().includes('corrego') || tipo.toLowerCase().includes('ribeirão')) {
+                                color = '#4da6ff';
+                                weight = 1.5;
+                            }
+                            
+                            return {
+                                color: color,
+                                weight: weight,
+                                opacity: 0.8
+                            };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            // Extrair o nome das propriedades
+                            const nome = extrairNome(feature.properties, 'Curso d\'água');
+                            const tipo = feature.properties.tipo || feature.properties.TIPO || 'curso_dagua';
+                            
+                            // Armazenar as propriedades no layer
+                            layer.properties = feature.properties;
+                            layer.nome = nome;
+                            layer.tipo = 'Hidrografia';
+                            
+                            // Adicionar tooltip com o nome
+                            layer.bindTooltip(`
+                                <strong>${nome}</strong><br>
+                                ${tipo} - Clique para detalhes
+                            `, {
+                                permanent: false,
+                                direction: 'auto'
+                            });
+                            
+                            // Adicionar evento de clique
+                            layer.on('click', function(e) {
+                                selecionarFeature(layer, 'Hidrografia', nome, feature.properties);
+                            });
+                            
+                            // Adicionar eventos de mouse
+                            layer.on('mouseover', function() {
+                                this.setStyle({
+                                    weight: this.options.weight + 1,
+                                    opacity: 1
+                                });
+                            });
+                            
+                            layer.on('mouseout', function() {
+                                this.setStyle({
+                                    weight: this.options.weight - 1,
+                                    opacity: 0.8
+                                });
+                            });
+                        }
+                    });
+                    
+                    // Adicionar ao mapa se estiver ativa
+                    if (camadasAtivas['hidrografia']) {
+                        camadaHidrografia.addTo(map);
+                    }
+                    
+                    console.log('Camada de Hidrografia carregada com sucesso');
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar GeoJSON de Hidrografia:', error);
+                });
+        }
+
         // Função para extrair nome das propriedades
         function extrairNome(properties, tipo) {
             if (!properties) return tipo;
@@ -782,7 +1102,9 @@
             const propriedadesPossiveis = [
                 'NM_RGINT', 'NM_MUNICIPIO', 'NOME', 'nome', 'name', 'NM_MUN', 
                 'municipio', 'MUNICIPIO', 'CIDADE', 'cidade', 'regiao', 'REGIAO',
-                'bacia', 'BACIA', 'NOMEMUN', 'MUNICÍPIO', 'Ibirité', 'IBIRITÉ'
+                'bacia', 'BACIA', 'NOMEMUN', 'MUNICÍPIO', 'Ibirité', 'IBIRITÉ',
+                'rio', 'RIO', 'corrego', 'CÓRREGO', 'ribeirao', 'RIBEIRÃO',
+                'subbacia', 'SUBBACIA', 'hidrografia', 'HIDROGRAFIA'
             ];
             
             for (const prop of propriedadesPossiveis) {
@@ -859,79 +1181,129 @@
             camadaInfo.classList.add('hidden');
         }
 
-        // Função para alternar camada raster
+        // Função para alternar camada
         function alternarCamada(camadaId, ativa) {
             console.log(`Alternando camada ${camadaId} para ${ativa ? 'ativa' : 'inativa'}`);
             camadasAtivas[camadaId] = ativa;
             
-            switch(camadaId) {
-                case 'ibirité':
-                    if (camadaIbirité) {
-                        if (ativa) {
-                            camadaIbirité.addTo(map);
-                            // Ajustar vista para a bacia
-                            map.fitBounds(camadaIbirité.getBounds(), { 
-                                padding: [50, 50],
-                                maxZoom: 13
-                            });
-                        } else {
-                            map.removeLayer(camadaIbirité);
-                            // Resetar painel se estiver mostrando informações da bacia
-                            resetarPainelInformacoes();
-                        }
-                    }
-                    break;
-                    
-                case '1967':
+            // Ativar/desativar camadas vetoriais
+            if (camadaId === 'ibirité') {
+                if (camadaIbirité) {
                     if (ativa) {
-                        tiles1967Layer.addTo(map);
-                        // Desativar outras camadas raster
-                        desativarOutrasCamadasRaster('1967');
+                        camadaIbirité.addTo(map);
+                        // Ajustar vista para a bacia
+                        map.fitBounds(camadaIbirité.getBounds(), { 
+                            padding: [50, 50],
+                            maxZoom: 13
+                        });
                     } else {
-                        map.removeLayer(tiles1967Layer);
+                        map.removeLayer(camadaIbirité);
+                        // Resetar painel se estiver mostrando informações da bacia
+                        resetarPainelInformacoes();
                     }
-                    break;
-                    
-                case '1976':
+                }
+            } else if (camadaId === 'subbacias') {
+                if (camadaSubbacias) {
                     if (ativa) {
-                        tiles1976Layer.addTo(map);
-                        // Desativar outras camadas raster
-                        desativarOutrasCamadasRaster('1976');
+                        camadaSubbacias.addTo(map);
                     } else {
-                        map.removeLayer(tiles1976Layer);
+                        map.removeLayer(camadaSubbacias);
+                        resetarPainelInformacoes();
                     }
-                    break;
-                    
-                case 'lulc':
+                }
+            } else if (camadaId === 'hidrografia') {
+                if (camadaHidrografia) {
                     if (ativa) {
-                        lulcLayer.addTo(map);
+                        camadaHidrografia.addTo(map);
+                    } else {
+                        map.removeLayer(camadaHidrografia);
+                        resetarPainelInformacoes();
+                    }
+                }
+            }
+            // Ativar/desativar camadas raster (históricos, batimetria e LULC)
+            else if (['1967', '1976', 'bat2024', 'bat2008', 'bat2003', 'bat1995', 'lulc'].includes(camadaId)) {
+                if (ativa) {
+                    // Mostrar legenda se for batimetria ou LULC
+                    if (camadaId.startsWith('bat')) {
+                        batimetriaLegend.classList.add('active');
+                    } else if (camadaId === 'lulc') {
                         lulcLegend.classList.add('active');
-                        // Desativar outras camadas raster
-                        desativarOutrasCamadasRaster('lulc');
-                    } else {
-                        map.removeLayer(lulcLayer);
+                    }
+                    
+                    // Adicionar camada raster
+                    switch(camadaId) {
+                        case '1967':
+                            tiles1967Layer.addTo(map);
+                            break;
+                        case '1976':
+                            tiles1976Layer.addTo(map);
+                            break;
+                        case 'bat2024':
+                            bat2024Layer.addTo(map);
+                            break;
+                        case 'bat2008':
+                            bat2008Layer.addTo(map);
+                            break;
+                        case 'bat2003':
+                            bat2003Layer.addTo(map);
+                            break;
+                        case 'bat1995':
+                            bat1995Layer.addTo(map);
+                            break;
+                        case 'lulc':
+                            lulcLayer.addTo(map);
+                            break;
+                    }
+                    
+                    // Desativar outras camadas raster (só uma pode estar ativa)
+                    desativarOutrasCamadasRaster(camadaId);
+                } else {
+                    // Esconder legenda se for batimetria ou LULC
+                    if (camadaId.startsWith('bat')) {
+                        batimetriaLegend.classList.remove('active');
+                    } else if (camadaId === 'lulc') {
                         lulcLegend.classList.remove('active');
                     }
-                    break;
+                    
+                    // Remover camada raster
+                    switch(camadaId) {
+                        case '1967':
+                            map.removeLayer(tiles1967Layer);
+                            break;
+                        case '1976':
+                            map.removeLayer(tiles1976Layer);
+                            break;
+                        case 'bat2024':
+                            map.removeLayer(bat2024Layer);
+                            break;
+                        case 'bat2008':
+                            map.removeLayer(bat2008Layer);
+                            break;
+                        case 'bat2003':
+                            map.removeLayer(bat2003Layer);
+                            break;
+                        case 'bat1995':
+                            map.removeLayer(bat1995Layer);
+                            break;
+                        case 'lulc':
+                            map.removeLayer(lulcLayer);
+                            break;
+                    }
+                }
             }
         }
 
         // Função para desativar outras camadas raster quando uma é ativada
         function desativarOutrasCamadasRaster(camadaAtiva) {
-            const outrasCamadas = {
-                '1967': ['1976', 'lulc'],
-                '1976': ['1967', 'lulc'],
-                'lulc': ['1967', '1976']
-            };
+            const todasCamadasRaster = ['1967', '1976', 'bat2024', 'bat2008', 'bat2003', 'bat1995', 'lulc'];
             
-            if (outrasCamadas[camadaAtiva]) {
-                outrasCamadas[camadaAtiva].forEach(camadaId => {
-                    if (camadasAtivas[camadaId]) {
-                        document.getElementById(`layer-${camadaId}`).checked = false;
-                        alternarCamada(camadaId, false);
-                    }
-                });
-            }
+            todasCamadasRaster.forEach(camadaId => {
+                if (camadaId !== camadaAtiva && camadasAtivas[camadaId]) {
+                    document.getElementById(`layer-${camadaId}`).checked = false;
+                    alternarCamada(camadaId, false);
+                }
+            });
         }
 
         // Função para inicializar os eventos do menu
@@ -949,35 +1321,35 @@
                 }
             });
             
-            // Expandir/recolher grupo vetorial
-            vectorHeader.addEventListener('click', () => {
-                const isExpanded = vectorContent.classList.contains('expanded');
-                
-                if (isExpanded) {
-                    vectorContent.classList.remove('expanded');
-                    vectorHeader.querySelector('.group-icon').style.transform = 'rotate(0deg)';
-                } else {
-                    vectorContent.classList.add('expanded');
-                    vectorHeader.querySelector('.group-icon').style.transform = 'rotate(180deg)';
-                }
-            });
-            
-            // Expandir/recolher grupo raster
-            rasterHeader.addEventListener('click', () => {
-                const isExpanded = rasterContent.classList.contains('expanded');
-                
-                if (isExpanded) {
-                    rasterContent.classList.remove('expanded');
-                    rasterHeader.querySelector('.group-icon').style.transform = 'rotate(0deg)';
-                } else {
-                    rasterContent.classList.add('expanded');
-                    rasterHeader.querySelector('.group-icon').style.transform = 'rotate(180deg)';
-                }
+            // Expandir/recolher grupos
+            [vectorHeader, historicosHeader, batimetriaHeader, usoSoloHeader].forEach(header => {
+                header.addEventListener('click', () => {
+                    const contentId = header.id.replace('header', 'content');
+                    const content = document.getElementById(contentId);
+                    const icon = header.querySelector('.group-icon');
+                    const isExpanded = content.classList.contains('expanded');
+                    
+                    if (isExpanded) {
+                        content.classList.remove('expanded');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        content.classList.add('expanded');
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
             });
             
             // Eventos para os checkboxes das camadas
             document.getElementById('layer-ibirité').addEventListener('change', function(e) {
                 alternarCamada('ibirité', this.checked);
+            });
+            
+            document.getElementById('layer-subbacias').addEventListener('change', function(e) {
+                alternarCamada('subbacias', this.checked);
+            });
+            
+            document.getElementById('layer-hidrografia').addEventListener('change', function(e) {
+                alternarCamada('hidrografia', this.checked);
             });
             
             document.getElementById('layer-1967').addEventListener('change', function(e) {
@@ -986,6 +1358,22 @@
             
             document.getElementById('layer-1976').addEventListener('change', function(e) {
                 alternarCamada('1976', this.checked);
+            });
+            
+            document.getElementById('layer-bat2024').addEventListener('change', function(e) {
+                alternarCamada('bat2024', this.checked);
+            });
+            
+            document.getElementById('layer-bat2008').addEventListener('change', function(e) {
+                alternarCamada('bat2008', this.checked);
+            });
+            
+            document.getElementById('layer-bat2003').addEventListener('change', function(e) {
+                alternarCamada('bat2003', this.checked);
+            });
+            
+            document.getElementById('layer-bat1995').addEventListener('change', function(e) {
+                alternarCamada('bat1995', this.checked);
             });
             
             document.getElementById('layer-lulc').addEventListener('change', function(e) {
@@ -1013,13 +1401,15 @@
         function inicializarMapa() {
             console.log('🚀 Inicializando mapa...');
             console.log('🎯 Camadas disponíveis:');
-            console.log('  - Bacia do Ibirité (vetor)');
-            console.log('  - Mapa de 1967 (raster)');
-            console.log('  - Mapa de 1976 (raster)');
-            console.log('  - Uso e Cobertura do Solo (raster)');
+            console.log('  - Vetoriais: Bacia, Sub-bacias e Hidrografia');
+            console.log('  - Históricos: 1967 e 1976');
+            console.log('  - Batimetria: 1995, 2003, 2008, 2024');
+            console.log('  - Uso do Solo: LULC');
             
-            // Carregar camada vetorial
+            // Carregar camadas vetoriais
             carregarCamadaIbirité();
+            carregarCamadaSubbacias();
+            carregarCamadaHidrografia();
             
             // Inicializar menu
             inicializarMenu();
