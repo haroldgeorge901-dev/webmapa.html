@@ -228,7 +228,7 @@
             visibility: visible;
         }
         
-        /* Menu de camadas expansível */
+        /* Menu de camadas expansível - CORRIGIDO */
         .layer-menu {
             position: absolute;
             top: 10px;
@@ -277,7 +277,7 @@
         }
         
         .layer-group {
-            margin-bottom: 5px;
+            margin-bottom: 0;
             border-top: 1px solid #eaeaea;
         }
         
@@ -290,9 +290,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 48px;
-            z-index: 5;
+            position: relative; /* REMOVIDO sticky */
+            z-index: 1;
         }
         
         .group-header:hover {
@@ -414,7 +413,7 @@
             color: #1e5799;
         }
         
-        /* Legenda para batimetria */
+        /* Legenda para batimetria - ATUALIZADA COM TONS DE AZUL */
         .batimetria-legend {
             position: absolute;
             bottom: 70px;
@@ -435,9 +434,10 @@
         .gradient-bar {
             width: 100%;
             height: 20px;
-            background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
+            background: linear-gradient(to right, #e6f7ff, #b3e0ff, #66c2ff, #3399ff, #0066cc, #004d99, #003366);
             border-radius: 3px;
             margin: 10px 0;
+            border: 1px solid #ccc;
         }
         
         .gradient-labels {
@@ -445,6 +445,23 @@
             justify-content: space-between;
             font-size: 0.8rem;
             color: #666;
+            margin-top: 5px;
+        }
+        
+        .gradient-labels span:first-child {
+            color: #003366; /* Azul escuro para fundo */
+        }
+        
+        .gradient-labels span:last-child {
+            color: #e6f7ff; /* Azul claro para raso */
+        }
+        
+        .depth-label {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -461,7 +478,7 @@
                     <div class="loading">Carregando mapa...</div>
                 </div>
                 
-                <!-- Menu de camadas expansível -->
+                <!-- Menu de camadas expansível - ESTRUTURA SIMPLIFICADA -->
                 <div class="layer-menu" id="layer-menu">
                     <div class="menu-header" id="menu-header">
                         <div class="menu-title">Camadas do Mapa</div>
@@ -598,14 +615,15 @@
                     </div>
                 </div>
                 
-                <!-- Legenda para batimetria -->
+                <!-- Legenda para batimetria - ATUALIZADA -->
                 <div class="batimetria-legend" id="batimetria-legend">
-                    <div class="legend-title">Profundidade (m)</div>
+                    <div class="legend-title">Profundidade</div>
                     <div class="gradient-bar"></div>
                     <div class="gradient-labels">
-                        <span>0m</span>
-                        <span>Profundo</span>
+                        <span>Fundo</span>
+                        <span>Raso</span>
                     </div>
+                    <div class="depth-label">Azul escuro = mais profundo</div>
                 </div>
             </div>
             
@@ -724,7 +742,7 @@
             errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
         });
 
-        // Criar camadas de batimetria
+        // Criar camadas de batimetria com cores em tons de azul
         const bat2024Layer = L.tileLayer(BAT_2024_URL, {
             attribution: 'Batimetria 2024',
             minZoom: 8,
@@ -1306,7 +1324,7 @@
             });
         }
 
-        // Função para inicializar os eventos do menu
+        // Função para inicializar os eventos do menu - CORRIGIDA
         function inicializarMenu() {
             // Expandir/recolher menu principal
             menuHeader.addEventListener('click', () => {
@@ -1321,19 +1339,35 @@
                 }
             });
             
-            // Expandir/recolher grupos
-            [vectorHeader, historicosHeader, batimetriaHeader, usoSoloHeader].forEach(header => {
-                header.addEventListener('click', () => {
-                    const contentId = header.id.replace('header', 'content');
-                    const content = document.getElementById(contentId);
-                    const icon = header.querySelector('.group-icon');
-                    const isExpanded = content.classList.contains('expanded');
+            // Expandir/recolher grupos - CORREÇÃO APLICADA
+            const grupos = [
+                { header: vectorHeader, content: vectorContent },
+                { header: historicosHeader, content: historicosContent },
+                { header: batimetriaHeader, content: batimetriaContent },
+                { header: usoSoloHeader, content: usoSoloContent }
+            ];
+            
+            grupos.forEach(grupo => {
+                grupo.header.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Previne propagação do evento
                     
+                    const icon = this.querySelector('.group-icon');
+                    const isExpanded = grupo.content.classList.contains('expanded');
+                    
+                    // Fechar todos os outros grupos primeiro
+                    grupos.forEach(g => {
+                        if (g.content !== grupo.content && g.content.classList.contains('expanded')) {
+                            g.content.classList.remove('expanded');
+                            g.header.querySelector('.group-icon').style.transform = 'rotate(0deg)';
+                        }
+                    });
+                    
+                    // Alternar o grupo atual
                     if (isExpanded) {
-                        content.classList.remove('expanded');
+                        grupo.content.classList.remove('expanded');
                         icon.style.transform = 'rotate(0deg)';
                     } else {
-                        content.classList.add('expanded');
+                        grupo.content.classList.add('expanded');
                         icon.style.transform = 'rotate(180deg)';
                     }
                 });
